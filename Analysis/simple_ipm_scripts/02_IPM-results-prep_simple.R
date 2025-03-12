@@ -30,10 +30,10 @@ library(purrr)
 # type <- "Simple_"
 
 # source functions
-source("Analysis/Scripts/00_output-processing_funs.R")
+source("Analysis/0_output-processing_funs.R")
 
 # Load wmu area data
-wmu_areas <- readRDS("../turkey_IPM/Data/wmu_km_areas_w.groups.rds")
+wmu_areas <- readRDS("Data/wmu_km_areas_regions.rds")
 
 ###-----------------------------------------------------#X
 # Organize data frame for IPM run with 4 WMUs for M, F, Ad, Juv
@@ -56,10 +56,11 @@ wmu_areas <- readRDS("../turkey_IPM/Data/wmu_km_areas_w.groups.rds")
 # "female.N.ad", "female.N.juv"
 
 ###-----------------------------------------------------#X
-#ipm_run <- readRDS(paste0("Data/IPM_runs/", date,"_", type, "IPM-run.rds"))
+# 12.29.2024 is the final version!
+load("Data/Outputs/20241228-Simple_IPM_run.Rdata")
 
 # vague prior on female survival
-ipm_run <- readRDS("Data/IPM_runs/20250108_Simple_IPM_run-vagueprior.rds")
+# load("Data/Outputs/20241228-Simple_IPM_run-vagueprior.Rdata")
 
 # `samples` is an MCMC array with dimensions [WMU, Year]
 samples_df <- as.data.frame(ipm_run$chain1)
@@ -236,14 +237,6 @@ kf_survival_df <- bind_rows(
                                  "Region 9")),
          demographic_est = "KF_Survival")
 
-# # Combine kf and drm
-# # Step 1: Get the unique years in drm_survival_df
-# unique_years <- drm_survival_df %>% distinct(year) %>% pull(year)
-# 
-# # Step 2: Expand kf_survival_df to have one entry per year per WMU
-# expanded_kf_survival_df <- kf_survival_df %>%
-#   crossing(year = unique_years)
-# 
 # Step 3: Bind the data frames together for plotting or analysis
 combined_survival_df <- bind_rows(
   drm_survival_df,
@@ -253,7 +246,8 @@ combined_survival_df <- bind_rows(
 
 # Save the  summary data frames to RDS files ----
 date <- "20250108"
-type <- "Simple_vague_"
+#type <- "Simple_vague_"
+type <- "Simple_"
 saveRDS(kf_survival_df, paste0("Data/Output/",  type, date,"_kf-survival_summary.rds"))
 saveRDS(combined_survival_df, paste0("Data/Output/", type, date,"_comb-survival_summary.rds"))
 saveRDS(drm_harvest_df, paste0("Data/Output/",  type, date, "_harvest_summary.rds"))

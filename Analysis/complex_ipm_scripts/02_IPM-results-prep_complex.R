@@ -26,10 +26,10 @@ library(stringr)
 library(purrr)
 
 # source functions
-source("Analysis/Scripts/00_output-processing_funs.R")
+source("Analysis/00_output-processing_funs.R")
 
 # Load wmu area data
-wmu_areas <- readRDS("../turkey_IPM/Data/wmu_areas_km.rds")
+wmu_areas <- readRDS("Data/wmu_areas_km.rds")
 
 ###-----------------------------------------------------#X
 # Organize data frame for IPM run with 4 WMUs for M, F, Ad, Juv
@@ -52,8 +52,8 @@ wmu_areas <- readRDS("../turkey_IPM/Data/wmu_areas_km.rds")
 # "female.N.ad", "female.N.juv"
 
 ###-----------------------------------------------------#X
-# 12.22.2024 is the final version!
-ipm_run <- readRDS("Data/IPM_runs/20241228-Full_IPM_run.rds")
+# 12.28.2024 is the final version!
+load("Data/Output/20241228-Complex_IPM_run.Rdata")
 
 # `samples` is an MCMC array with dimensions [WMU, Year]
 samples_df <- as.data.frame(ipm_run$chain1)
@@ -159,7 +159,7 @@ drm_harvest_df <- bind_rows(
 
 # Save the  summary data frames to RDS files ----
 date <- "20241228"
-type = "Full_"
+type = "Complex_"
 saveRDS(kf_survival_df, paste0("Data/Output/", type, date,"_kf-survival_summary.rds"))
 saveRDS(combined_survival_df, paste0("Data/Output/", type, date,"_comb-survival_summary.rds"))
 saveRDS(drm_harvest_df, paste0("Data/Output/", type, date, "_harvest_summary.rds"))
