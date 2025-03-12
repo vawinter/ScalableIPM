@@ -2,3 +2,5 @@
 *.Rhistory
 *.RData
 *.Ruserdata
+Data/Complex_IPM_setup-data/
+Data/Simple_IPM_setup-data/

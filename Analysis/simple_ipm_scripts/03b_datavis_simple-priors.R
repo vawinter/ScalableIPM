@@ -27,11 +27,7 @@ library(reshape2)
 library(patchwork)
 
 # of data output
-#date <- "20241026"
 date <- "20250108"
-
-# vague prior
-#kf_survival_df <- readRDS(paste0("Data/Output/Simple_", date, "_kf-survival-testpior_summary.rds"))
 
 # Load data 
 kf_survival_df <- readRDS(paste0("Data/Output/Simple_vague_", date,"_kf-survival_summary.rds"))
@@ -532,127 +528,6 @@ recruitment_plot <- ggplot(rec, aes(y = density_value, x = year, color = as.fact
 
 #### Save the fem surv and rec ----
 ggsave("Manuscript/Simple_kf_survival_plot.png", plot = kf_survival_plot,  width = 10, height = 6, dpi = 700)
-# ggsave("Manuscript/Simple_kf_survival_plot-distTes.png", plot = kf_survival_plot,  width = 10, height = 6, dpi = 700)
 ggsave("Manuscript/Simple_rec_plot.png", plot = recruitment_plot, width = 10, height = 8, dpi = 700)
 
 
-# Summary tables ----
-## Summarize harvest rate ----
-harvest_rate_summary <- drm_harvest_df %>%
-  filter(sex == "Female") %>% 
-  group_by(sex, Region, age_class) %>%
-  summarise(
-    lower_ci = round(min(lower_ci, na.rm = TRUE), 3),
-    median = round(median_value, 3),  # Minimum harvest rate
-    #max_median = round(max(median_value, na.rm = TRUE), 3),   # Maximum harvest rate
-    upper_ci = round(max(upper_ci, na.rm = TRUE), 3)
-  )
-
-# Display the summary table
-print(harvest_rate_summary, n = 150)
-
-## Summarize survival rate ----
-survival_rate_summary <- combined_survival_df %>%
-  group_by(sex, Region, age_class) %>%
-  reframe(
-    lower_ci = round(min(lower_ci, na.rm = TRUE), 3),
-    median = round(median_value, 3),  # Minimum harvest rate
-    #max_median = round(max(median_value, na.rm = TRUE), 3),   # Maximum harvest rate
-    upper_ci = round(max(upper_ci, na.rm = TRUE), 3)  # Maximum harvest rate
-  )
-
-# Display the summary table
-print(survival_rate_summary, n = 200)
-range(survival_rate_summary$median)
-## Summarize density ----
-density_rate_summary <- abundance_df %>%
-  dplyr::select(!area_sq_km) %>% 
-  left_join(wmu_areas, by = c("Region" = "WMU_ID")) %>% 
-  group_by(sex, age_class, year) %>%
-  reframe(
-    lower_ci = round(min(lower_ci/area_sq_km, na.rm = TRUE), 3),
-    median = round(median_value/area_sq_km, 3),   # Maximum harvest rate
-    upper_ci = round(min(upper_ci/area_sq_km, na.rm = TRUE), 3))
-
-# Display the summary table
-print(density_rate_summary, n = 200)
-
-## Summarize female survival ----
-survival_rate_summary <- kf_survival_df %>%
-  group_by(age_class) %>%
-  summarise(
-    lower_ci = round(min(lower_ci, na.rm = TRUE), 3),
-    median = round(median_value, 3),  # Minimum harvest rate
-    #max_median = round(max(median_value, na.rm = TRUE), 3),   # Maximum harvest rate
-    upper_ci = round(max(upper_ci, na.rm = TRUE), 3)
-  )
-
-# Display the summary table
-print(survival_rate_summary, n = 100)
-
-## Summarize female survival ----
-rec_rate_summary <- rec %>%
-  group_by(age_class) %>%
-  summarise(
-    lower_ci = round(min(lower_ci/area_sq_km, na.rm = TRUE), 3),
-    min_median = round(min(median_value/area_sq_km, na.rm = TRUE), 3),  # Minimum harvest rate
-    max_median = round(max(median_value/area_sq_km, na.rm = TRUE), 3),   # Maximum harvest rate
-    upper_ci = round(max(upper_ci/area_sq_km, na.rm = TRUE), 3)
-  )
-
-# Display the summary table
-print(rec_rate_summary)
-
-## Summarize ppb ----
-rec_rate_summary <- hwb %>%
-  left_join(ppb) %>% 
-  group_by(wmu, year) %>%
-  summarise(
-    lower_ci = round(min(lower_ci, na.rm = TRUE), 3),
-    min_median = round(min(median_value, na.rm = TRUE), 3),  # Minimum harvest rate
-    max_median = round(max(median_value, na.rm = TRUE), 3),   # Maximum harvest rate
-    upper_ci = round(max(upper_ci, na.rm = TRUE), 3)
-  )
-
-# Display the summary table
-print(rec_rate_summary)
-
-rec_rate_summary <- hwb %>%
-  group_by(sex) %>%
-  summarise(
-    lower_ci = round(min(lower_ci, na.rm = TRUE), 3),
-    min_median = round(min(median_value, na.rm = TRUE), 3),  # Minimum harvest rate
-    max_median = round(max(median_value, na.rm = TRUE), 3),   # Maximum harvest rate
-    upper_ci = round(max(upper_ci, na.rm = TRUE), 3)
-  )
-
-# Display the summary table
-print(rec_rate_summary)
-
-## Summarize density ----
-density_rate_summary <- abundance_df_totals %>%
-  group_by(sex, group, year) %>%
-  summarise(
-    lower_ci = round(min(lower_ci, na.rm = TRUE), 3),
-    min_median = round(min(median_value, na.rm = TRUE), 3),  # Minimum harvest rate
-    max_median = round(max(median_value, na.rm = TRUE), 3),   # Maximum harvest rate
-    upper_ci = round(min(upper_ci, na.rm = TRUE), 3)
-  ) %>% 
-  pivot_wider(
-    names_from = sex, 
-    values_from = c(lower_ci, min_median, max_median, upper_ci),
-    names_sep = "_"
-  ) %>%
-  mutate(
-    male_female_ratio_min_median = min_median_Male / min_median_Female,
-    male_female_ratio_max_median = max_median_Male / max_median_Female
-  )
-
-# Calculate the average ratio across WMUs
-average_ratios <- density_rate_summary %>%
-  summarise(
-    avg_min_median_ratio = mean(male_female_ratio_min_median, na.rm = TRUE),
-    avg_max_median_ratio = mean(male_female_ratio_max_median, na.rm = TRUE)
-  )
-# Calculate the mean of the 'avgmedian_ratio' column
-mean_avgmedian_ratio <- mean(average_ratios$avg_min_median_ratio)

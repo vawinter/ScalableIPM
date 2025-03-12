@@ -53,7 +53,7 @@ wmu_areas <- readRDS("Data/wmu_areas_km.rds")
 
 ###-----------------------------------------------------#X
 # 12.28.2024 is the final version!
-load("Data/Output/20241228-Complex_IPM_run.Rdata")
+load("Data/Output/20241228_Complex_IPM_run.Rdata")
 
 # `samples` is an MCMC array with dimensions [WMU, Year]
 samples_df <- as.data.frame(ipm_run$chain1)

@@ -1,7 +1,7 @@
 ###############################################################################X
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #################### Integrated Population Model (IPM): #######################X
-#                 #---# PhD Dissertation: Chapter 1 #---#
+#                 #---# PhD Dissertation: Simple IPM #---#
 #        Creating a Bayesian IPM to inform turkey management in PA
 ###                     *** Output organization ***                         ###X
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #X
@@ -30,7 +30,7 @@ library(purrr)
 # type <- "Simple_"
 
 # source functions
-source("Analysis/0_output-processing_funs.R")
+source("Analysis/00_output-processing_funs.R")
 
 # Load wmu area data
 wmu_areas <- readRDS("Data/wmu_km_areas_regions.rds")
@@ -57,9 +57,10 @@ wmu_areas <- readRDS("Data/wmu_km_areas_regions.rds")
 
 ###-----------------------------------------------------#X
 # 12.29.2024 is the final version!
-load("Data/Outputs/20241228-Simple_IPM_run.Rdata")
+load("Data/Output/20241229_Simple_IPM_run.Rdata")
 
-# vague prior on female survival
+# Vague prior on female survival
+# 01.08.2025 is the final version
 # load("Data/Outputs/20241228-Simple_IPM_run-vagueprior.Rdata")
 
 # `samples` is an MCMC array with dimensions [WMU, Year]
@@ -245,7 +246,7 @@ combined_survival_df <- bind_rows(
 
 
 # Save the  summary data frames to RDS files ----
-date <- "20250108"
+date <- "20241229"
 #type <- "Simple_vague_"
 type <- "Simple_"
 saveRDS(kf_survival_df, paste0("Data/Output/",  type, date,"_kf-survival_summary.rds"))
