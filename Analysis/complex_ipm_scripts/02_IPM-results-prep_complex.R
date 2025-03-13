@@ -158,6 +158,14 @@ drm_harvest_df <- bind_rows(
          demographic_est = "DRM_HarvestRate") 
 
 # Save the  summary data frames to RDS files ----
+folder_path <- "Data/Output/"
+# Check if the folder exists, if not, create it
+if (!dir.exists(folder_path)) {
+  dir.create(folder_path)
+  message("Folder created: ", folder_path)
+} else {
+  message("Folder already exists: ", folder_path)
+}
 date <- "20241228"
 type = "Complex_"
 saveRDS(kf_survival_df, paste0("Data/Output/", type, date,"_kf-survival_summary.rds"))

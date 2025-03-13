@@ -259,6 +259,14 @@ print(paste("Total time", (end - start)))
 
 
 # Save output
+folder_path <- "Data/"
+# Check if the folder exists, if not, create it
+if (!dir.exists(folder_path)) {
+  dir.create(folder_path)
+  message("Folder created: ", folder_path)
+} else {
+  message("Folder already exists: ", folder_path)
+}
 saveRDS(ipm_run, "Data/Simple_IPM_run.rds")
 # Save workspace
 save.image(file = "Data/Simple_IPM_run.Rdata")

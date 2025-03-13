@@ -249,6 +249,14 @@ combined_survival_df <- bind_rows(
 
 
 # Save the  summary data frames to RDS files ----
+folder_path <- "Data/Output/"
+# Check if the folder exists, if not, create it
+if (!dir.exists(folder_path)) {
+  dir.create(folder_path)
+  message("Folder created: ", folder_path)
+} else {
+  message("Folder already exists: ", folder_path)
+}
 date <- "20241229"
 #type <- "Simple_vague_"
 type <- "Simple_"

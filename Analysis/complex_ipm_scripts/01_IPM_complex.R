@@ -284,6 +284,14 @@ end <- Sys.time()
 print(paste("Total time", (end - start)))
 
 # Save output
+folder_path <- "Data/"
+# Check if the folder exists, if not, create it
+if (!dir.exists(folder_path)) {
+  dir.create(folder_path)
+  message("Folder created: ", folder_path)
+} else {
+  message("Folder already exists: ", folder_path)
+}
 saveRDS(ipm_run, "Data/Complex_IPM_run.rds")
 save.image(file = "Data/Complex_IPM_run.Rdata")
 #############################################################X
