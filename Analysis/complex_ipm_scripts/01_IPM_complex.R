@@ -20,7 +20,7 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #X
 # 
 # Created by: Veronica A. Winter
-# Last edited: 12/28/2024
+# Last edited: 01/01/2024
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #X
 ###############################################################################X
@@ -284,8 +284,8 @@ end <- Sys.time()
 print(paste("Total time", (end - start)))
 
 # Save output
-saveRDS(ipm_run, "Data/IPM_runs/20241228-Full_IPM_run.rds")
-save.image(file = "Data/IPM_runs/20241228-Full_IPM_run.Rdata")
+saveRDS(ipm_run, "Data/Complex_IPM_run.rds")
+save.image(file = "Data/Complex_IPM_run.Rdata")
 #############################################################X
 #           Model diagnostics ----
 #############################################################X

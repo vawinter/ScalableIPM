@@ -259,9 +259,9 @@ print(paste("Total time", (end - start)))
 
 
 # Save output
-saveRDS(ipm_run, "Data/IPM_runs/20250102_Simple_IPM_run-testHarvest.rds")
+saveRDS(ipm_run, "Data/Simple_IPM_run.rds")
 # Save workspace
-save.image(file = "Data/IPM_runs/20250102_Simple_IPM_run-testHarvest.Rdata")
+save.image(file = "Data/Simple_IPM_run.Rdata")
 #############################################################X
 #           Model diagnostics ----
 #############################################################X

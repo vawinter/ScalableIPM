@@ -7,7 +7,7 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #X
 # 
 # Created by: Veronica A. Winter
-# Last edited: 10/07/2024
+# Last edited: 01/01/2024
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #X
 ###############################################################################X
@@ -56,13 +56,16 @@ wmu_areas <- readRDS("Data/wmu_km_areas_regions.rds")
 # "female.N.ad", "female.N.juv"
 
 ###-----------------------------------------------------#X
-# 12.29.2024 is the final version!
-load("Data/Output/20241229_Simple_IPM_run.Rdata")
-
-# Vague prior on female survival
-# 01.08.2025 is the final version
-# load("Data/Outputs/20241228-Simple_IPM_run-vagueprior.Rdata")
-
+load("Data/Simple_IPM_run.Rdata")
+###-----------------------------------------------------#X
+## Vague prior on female survival ----X
+# A Note on Vague priors model:
+# This model is the same as the Simple IPM with the only change being that female
+# harvest rates and survival probability are constructed with a vague prior of
+# Beta(1,1) as opposed to an informative prior
+#
+# load("Data/Outputs/Simple_IPM_run-vagueprior.Rdata")
+###-----------------------------------------------------#X
 # `samples` is an MCMC array with dimensions [WMU, Year]
 samples_df <- as.data.frame(ipm_run$chain1)
 
