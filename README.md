@@ -34,7 +34,7 @@ The **Complex IPM** estimates demographic parameters at the WMU scale for males 
 
 ### Models
 
-*Males**:
+**Males**:
 
 **Dead Recovery Model**: Estimates harvest and survival rates at the WMU or regional level.
 
@@ -80,7 +80,7 @@ The **Simple IPM** estimates demographic parameters at the **regional scale** fo
 
 **Females**:
 
-**Recruitment Models**:
+**Recruitment Models:**
 
 **Hen with Brood (HWB) Model**: Estimates the number of hens with poults on September 1.
 
