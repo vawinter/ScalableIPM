@@ -1,4 +1,4 @@
-ipm_simple <- nimbleCode({
+ipm_simple_vague <- nimbleCode({
   ###########################################################X
   # Simple IPM for modeling statewide WMU group dynamics for PA ----
   ###########################################################X
