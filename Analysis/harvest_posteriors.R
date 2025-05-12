@@ -1,20 +1,18 @@
 rm(list = ls())
 gc()
 
-# Load necessary libraries
-library(ggplot2)
-library(reshape2)
-library(bayesplot)
+# Load libraries
+library(knitr)
 library(dplyr)
-library(MCMCvis)
-library(nimble)
+library(kableExtra)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
 
 # Posteriors
 harvest_df <- readRDS("Data/Output/Simple_20250326_harvest_summary.rds") %>% 
   filter(sex == "Female")
-library(ggplot2)
-library(dplyr)
-library(tidyr)
+
 
 #-------------------------
 # Function to calculate percent shifts and related metrics
@@ -87,12 +85,24 @@ overall_summary <- shift_metrics %>%
 complete_table <- bind_rows(region_summary, overall_summary) %>%
   arrange(sex, age_class, wmu)
 
+
 # Format for presentation
 formatted_table <- complete_table %>%
-  mutate(across(where(is.numeric), ~round(., 2)))
+  mutate(across(where(is.numeric), ~round(., 2))) %>% 
+  mutate(Region = as.character(paste("Region", wmu, sep = " ")),
+         Sex_Age_Class = paste(sex, age_class)) %>%
+  select(Sex_Age_Class, Region, mean_percent_shift , mean_abs_shift , mean_var_ratio)
 
 # Print formatted table
 print(formatted_table)
+
+table_reg3 <- kable(formatted_table,
+                    booktabs = TRUE,   
+                    format = "html", 
+                    col.names = c("Sex & Age Class","Region","Percent shift (mean)", "Absolute shift (mean)", "Variance ratio (mean)")) %>%
+  # Collapse rows for Sex/Age Class and WMU
+  collapse_rows(columns = c(1, 2), latex_hline = "major", valign = "middle") %>%
+  kable_styling(latex_options = c("hold_position", "repeat_header"), full_width = FALSE) 
 
 # Export to CSV
 write.csv(formatted_table, "percent_shift_summary.csv", row.names = FALSE)
@@ -148,6 +158,22 @@ overall_summary <- shift_metrics %>%
 complete_table <- bind_rows(region_summary, overall_summary) %>%
   arrange(sex, age_class, wmu)
 
+
 # Format for presentation
 formatted_table <- complete_table %>%
-  mutate(across(where(is.numeric), ~round(., 2)))
+  mutate(across(where(is.numeric), ~round(., 2))) %>% 
+  mutate(Region = as.character(paste("Region", wmu, sep = " ")),
+         Sex_Age_Class = paste(sex, age_class)) %>%
+  select(Sex_Age_Class, Region, mean_percent_shift , mean_abs_shift , mean_var_ratio)
+
+# Print formatted table
+print(formatted_table)
+
+table_reg4 <- kable(formatted_table,
+                    booktabs = TRUE,   
+                    format = "html", 
+                    col.names = c("Sex & Age Class","Region","Percent shift (mean)", "Absolute shift (mean)", "Variance ratio (mean)")) %>%
+  # Collapse rows for Sex/Age Class and WMU
+  collapse_rows(columns = c(1, 2), latex_hline = "major", valign = "middle") %>%
+  kable_styling(latex_options = c("hold_position", "repeat_header"), full_width = FALSE) 
+
