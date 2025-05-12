@@ -62,29 +62,44 @@ cv_df_all <- bind_rows(research_cv, operational_cv, vague_cv) %>%
                                  "male.s.juv.wmu" = "Juvenile Male Survival",
                                  "recruitment" = "Recruitment"
   )) %>% 
-  filter(!Base_Parameter %in% c("aug31.ppb", "aug31.hwb"))
+  filter(!Base_Parameter %in% c("aug31.ppb", "aug31.hwb")) %>% 
+  dplyr::select(Model, Base_Parameter, avgCV) %>% 
+  mutate(avgCV = round(avgCV, 3))
 
 
 # Print result
 print(cv_df_all)
 
 saveRDS(cv_df_all, "Data/ModelComparison_CV.rds")
+
+library(knitr)
+library(kableExtra)
+table_wmu <- kable(cv_df_all,
+                   booktabs = TRUE,   
+                   format = "html", 
+                   col.names = c("Model", "Parameter","Average CV")) %>%
+  # Collapse rows for Sex/Age Class and WMU
+  collapse_rows(columns = c(1, 2, 3), latex_hline = "major", valign = "middle") %>%
+  kable_styling(latex_options = c("hold_position", "repeat_header"), full_width = FALSE) 
+
+save_kable(table_wmu, file = "Appx8Tb1.html")
 ##########################X
 # Boxplots ----
 ##########################X
 box <- cv_df_all %>% 
-  filter(Base_Parameter %in% c(#"Adult Female Abundance",
-                               # "Adult Female Survival",
-                               # "Adult Female Harvest Rate",
-                                #"Juvenile Female Abundance",
-                               #"Juvenile Female Survival",
-                               #"Juvenile Female Harvest Rate",
-                               "Adult Male Abundance",
-                               "Adult Male Survival",
-                               "Adult Male Harvest Rate",
-                               "Juvenile Male Abundance",
-                               "Juvenile Male Survival",
-                               "Juvenile Male Harvest Rate"
+  filter(Base_Parameter %in% c("Adult Female Abundance",
+                               "Adult Female Survival",
+                               "Adult Female Harvest Rate",
+                                "Juvenile Female Abundance",
+                               "Juvenile Female Survival",
+                               "Juvenile Female Harvest Rate",
+                               "Recruitment"
+                               # "Adult Male Abundance",
+                               # "Adult Male Survival",
+                               # "Adult Male Harvest Rate",
+                               # "Juvenile Male Abundance",
+                               # "Juvenile Male Survival",
+                               # "Juvenile Male Harvest Rate"
                                )) %>%  
   mutate(Model = factor(Model, levels = c("Research", "Operational", "Vague"))) %>%
 ggplot(aes(x = Base_Parameter, y = CV, fill = Model)) +
@@ -107,8 +122,8 @@ ggplot(aes(x = Base_Parameter, y = CV, fill = Model)) +
 box
 
 
-ggsave("../../Manuscripts/ScalableIPM/Dataviz/Model_CV_male.png", plot = box, width = 10, height = 6, dpi = 700)
-ggsave("../../Manuscripts/ScalableIPM/Dataviz/Model_CV2.pdf", plot = box, width = 10, height = 6, dpi = 700)
+ggsave("../../Manuscripts/ScalableIPM/Dataviz/Model_CV_rec.png", plot = box, width = 10, height = 6, dpi = 700)
+ggsave("../../Manuscripts/ScalableIPM/Dataviz/Model_CV_rec.pdf", plot = box, width = 10, height = 6, dpi = 700)
 #--------------X
 male_box <- cv_df_all %>% 
   filter(Base_Parameter %in% c("Adult Male Abundance",

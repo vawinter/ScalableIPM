@@ -13,10 +13,10 @@ library(doParallel)
 library(foreach)
 library(coda)
 
-# Source required scripts
-source("Analysis/Scripts/00_IPM_funs.R")
-source("Analysis/Scripts/00_data-formating_IPM.R")
-source("models/ipm.R")
+# Import required scripts
+source("Analysis/00_IPM_funs.R")
+load("Data/Research_IPM_setup-data/complex_IPM_Nimble_data_setup.RData")
+source("Models/research_ipm.R")
 
 ##################################################X
 # Estimate parameters in Nimble ----

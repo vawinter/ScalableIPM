@@ -29,8 +29,8 @@ library(patchwork)
 date <- "20250326"
 
 # Load data 
-abundance_df <- readRDS(paste0("../../PSUTurkey/turkey_IPM/Data/Output/Simple_", date, "_abundance_summary.rds"))
-rec <- readRDS(paste0("../../PSUTurkey/turkey_IPM/Data/Output/Simple_", date, "_rec_summary.rds"))
+abundance_df <- readRDS(paste0("../../PSUTurkey/turkey_IPM/Data/Output/Full_", date, "_abundance_summary.rds"))
+rec <- readRDS(paste0("../../PSUTurkey/turkey_IPM/Data/Output/Full_", date, "_rec_summary.rds"))
 
 abundance_df$group <- abundance_df$wmu
 rec$group <- rec$wmu
@@ -104,7 +104,7 @@ plot_data <- combined_df
 #############################
 # Calculate R² values for each group
 correlations_groups_r2 <- combined_df %>%
- # group_by(group) %>%
+  group_by(group) %>%
   mutate(rec_density_prev = lag(rec_density)) %>%  # create lagged rec_density
   filter(!is.na(rec_density_prev)) %>% 
   summarise(

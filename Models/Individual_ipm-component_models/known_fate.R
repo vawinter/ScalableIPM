@@ -50,7 +50,7 @@ survival <- nimbleCode({
         # step(m - telem.first[i]): holds the first month at the intercept
         #-------------------------------------------------------------------------X
         
-        s.kf[i, y, m] <-  telem.beta.int[1] +   # Adult, first month in study
+       s.kf[i, y, m] <-  telem.beta.int[1] +   # Adult, first month in study
           telem.beta.age[1] * telem.juvenile[i, y, m] +  # Juvenile-specific effect
           inprod(telem.beta.wmu[1:4], telem.wmu[i, 1:4]) +  # WMU random effect
           telem.beta.month[m]   # Month effects only beyond the first month
@@ -58,7 +58,7 @@ survival <- nimbleCode({
         #-------------------------------------------------------------------------X
         # Likelihood for survival status (0 = dead, 1 = alive) using a Bernoulli distribution
         # The probability is the inverse complementary log-log of the survival 
-        # icloglog() is appropriate when values are skewed low (towards 0) or high (towards 1)
+        # cloglog() is appropriate when values are skewed low (towards 0) or high (towards 1)
         #-------------------------------------------------------------------------X
         
         status[i, y, m] ~ dbern(prob = icloglog(s.kf[i, y, m]))
@@ -91,8 +91,12 @@ survival <- nimbleCode({
   # Calculate survival for Adults, accounting for nesting season 
   #---------------------------------------------------------------X
   for (j in 1:female.telem.wmu) {
+    # November and December survival using Jan as a proxy
+    ad_part1[j] <- storage[j, 1, 1] * storage[j, 1, 1] 
+    # Jan to Novemer
+    ad_part2[j] <- prod(storage[j, 1, 1:10])
     # Jan to December
-    avg.ad.s.kf[j] <- prod(storage[j, 1, 1:12])  
+    avg.ad.s.kf[j] <- (ad_part1[j])* ad_part2[j] 
   }
   #---------------------------------------------------------------X
   # Calculate survival for Juveniles transitioning to Adults in June
@@ -106,7 +110,7 @@ survival <- nimbleCode({
     adult_part[j] <- prod(storage[j, 1, 6:12])     
     
     # Cumulative survival for each entry month
-    avg.juv.s.kf[j] <- (juvenile_part1[j] * juvenile_part2[j])* adult_part[j] 
+    avg.juv.s.kf[j] <- (juvenile_part1[j]*juvenile_part2[j])* adult_part[j] 
   }
   
 

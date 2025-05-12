@@ -364,4 +364,3 @@ DRM_simulate_data<-function(n.occasions, marked, S, rr, I, raneff) {
 get_first_non_zero <- function(row) {
   return(row[row != 0][1])
 }
-
