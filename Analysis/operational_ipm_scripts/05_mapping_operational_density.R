@@ -36,7 +36,7 @@ pa <- states %>% filter(ID == "pennsylvania")
 wmu_shapefile <- st_read("../TurkeyProject/Data/PGC_BNDWildlifeManagementUnits2024.shp")
 
 # Read in abundance data
-abundance_df <- readRDS("Data/Output/Simple_2021229_abundance_summary.rds")
+abundance_df <- readRDS("Data/Output/Operational_abundance_summary.rds")
 
 # Create WMU groups based on criteria
 wmu_shapefile <- wmu_shapefile %>%

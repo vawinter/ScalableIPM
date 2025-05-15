@@ -23,7 +23,7 @@ hwb <- readRDS("Data/Output/Operational_hwb_summary.rds")
 rec <- readRDS("Data/Output/Operational_rec_summary.rds")
 combined_survival_df <- readRDS("Data/Output/Operational_comb-survival_summary.rds")
 # Load in WMU areas
-wmu_areas <- readRDS("../../PSUTurkey/turkey_IPM/Data/wmu_km_areas_w.groups.rds")
+wmu_areas <- readRDS("Data/wmu_km_areas_w.groups.rds")
 
 # Format harvest data ----
 dat <- read.csv("../../PSUTurkey/turkey_IPM/Data/Banding_harv_data/FallSprHarvData_20240919.csv", header=T)

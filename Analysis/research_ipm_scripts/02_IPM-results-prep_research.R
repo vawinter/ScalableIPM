@@ -47,7 +47,6 @@ wmu_areas <- readRDS("Data/wmu_areas_km.rds")
 # "female.N.ad", "female.N.juv"
 
 ###-----------------------------------------------------#X
-# 12.28.2024 is the final version!
 load("Data/Research_IPM_run.Rdata")
 
 # `samples` is an MCMC array with dimensions [WMU, Year]
@@ -161,13 +160,12 @@ if (!dir.exists(folder_path)) {
 } else {
   message("Folder already exists: ", folder_path)
 }
-date <- "20241228"
-type = "Complex_"
-saveRDS(kf_survival_df, paste0("Data/Output/", type, date,"_kf-survival_summary.rds"))
-saveRDS(combined_survival_df, paste0("Data/Output/", type, date,"_comb-survival_summary.rds"))
-saveRDS(drm_harvest_df, paste0("Data/Output/", type, date, "_harvest_summary.rds"))
-saveRDS(abundance_df, paste0("Data/Output/", type, date, "_abundance_summary.rds"))
-saveRDS(drm_survival_df, paste0("Data/Output/", type, date, "_drm_survival_summary.rds"))
-saveRDS(ppb, paste0("Data/Output/", type, date, "_ppb_summary.rds"))
-saveRDS(hwb, paste0("Data/Output/", type, date, "_hwb_summary.rds"))
-saveRDS(rec, paste0("Data/Output/", type, date, "_rec_summary.rds"))
+type = "Research_"
+saveRDS(kf_survival_df, paste0("Data/Output/", type, "_kf-survival_summary.rds"))
+saveRDS(combined_survival_df, paste0("Data/Output/", type, "_comb-survival_summary.rds"))
+saveRDS(drm_harvest_df, paste0("Data/Output/", type,  "_harvest_summary.rds"))
+saveRDS(abundance_df, paste0("Data/Output/", type,  "_abundance_summary.rds"))
+saveRDS(drm_survival_df, paste0("Data/Output/", type,  "_drm_survival_summary.rds"))
+saveRDS(ppb, paste0("Data/Output/", type,  "_ppb_summary.rds"))
+saveRDS(hwb, paste0("Data/Output/", type,  "_hwb_summary.rds"))
+saveRDS(rec, paste0("Data/Output/", type, "_rec_summary.rds"))

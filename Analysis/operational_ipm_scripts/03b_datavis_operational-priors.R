@@ -8,11 +8,6 @@
 #                             Data visualization
 ###                              VAGUE PRIORS                               ###X
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #X
-# 
-# Created by: Veronica A. Winter
-# Last edited: 10/01/2024
-#
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #X
 ###############################################################################X
 rm(list = ls())
 gc()
@@ -26,21 +21,19 @@ library(ggridges)
 library(reshape2)
 library(patchwork)
 
-# of data output
-date <- "20250108"
 
 # Load data 
-kf_survival_df <- readRDS(paste0("Data/Output/Simple_vague_", date,"_kf-survival_summary.rds"))
-drm_harvest_df <- readRDS(paste0("Data/Output/Simple_vague_", date, "_harvest_summary.rds"))
-abundance_df <- readRDS(paste0("Data/Output/Simple_vague_", date, "_abundance_summary.rds"))
-drm_survival_df <- readRDS(paste0("Data/Output/Simple_vague_", date, "_drm_survival_summary.rds"))
-combined_survival_df <- readRDS(paste0("Data/Output/Simple_vague_", date,"_comb-survival_summary.rds"))
-ppb <- readRDS(paste0("Data/Output/Simple_vague_", date, "_ppb_summary.rds"))
-hwb <- readRDS(paste0("Data/Output/Simple_vague_", date, "_hwb_summary.rds"))
-rec <- readRDS(paste0("Data/Output/Simple_vague_", date, "_rec_summary.rds"))
+kf_survival_df <- readRDS("Data/Output/Operational_vague_kf-survival_summary.rds")
+drm_harvest_df <- readRDS("Data/Output/Operational_vague_harvest_summary.rds")
+abundance_df <- readRDS("Data/Output/Operational_vague_abundance_summary.rds")
+drm_survival_df <- readRDS("Data/Output/Operational_vague_drm_survival_summary.rds")
+combined_survival_df <- readRDS("Data/Output/Operational_vague_comb-survival_summary.rds")
+ppb <- readRDS("Data/Output/Operational_vague_ppb_summary.rds")
+hwb <- readRDS("Data/Output/Operational_vague_hwb_summary.rds")
+rec <- readRDS("Data/Output/Operational_vague_rec_summary.rds")
 
 # Load in WMU areas
-wmu_areas <- readRDS("../turkey_IPM/Data/wmu_km_areas_w.groups.rds")
+wmu_areas <- readRDS("Data/wmu_km_areas_w.groups.rds")
 
 # Format harvest data ----
 dat <- read.csv("Data/Banding_harv_data/FallSprHarvData_20240919.csv", header=T)
