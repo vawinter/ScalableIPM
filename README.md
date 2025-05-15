@@ -6,9 +6,9 @@
 
 This repository contains two Integrated Population Models (IPMs) for estimating the abundance, survival, and recruitment of wild turkeys in Pennsylvania. Both models account for age class and sex differences:
 
-The **Complex IPM** operates at the scale of three Wildlife Management Units (WMUs).
+The **Research IPM** operates at the scale of three Wildlife Management Units (WMUs).
 
-The **Simple IPM** leverages informative priors from the Complex IPM posteriors to estimate parameters at the broader **wildlife management region** scale.
+The **Operational IPM** leverages informative priors from the Complex IPM posteriors to estimate parameters at the broader **wildlife management region** scale.
 
 ### Key Demographic Parameters:
 
@@ -18,9 +18,9 @@ The **Simple IPM** leverages informative priors from the Complex IPM posteriors 
 
 **Recruitment**
 
-## Complex IPM
+## Research IPM
 
-The **Complex IPM** estimates demographic parameters at the WMU scale for males and females.
+The **Research IPM** estimates demographic parameters at the WMU scale for males and females.
 
 ### Estimations by:
 
@@ -54,11 +54,11 @@ The **Complex IPM** estimates demographic parameters at the WMU scale for males 
 
 ### Data File:
 
-`Complex_IPM_run.Rdata` – Contains setup data and IPM output.
+`Research_IPM_run.Rdata` – Contains setup data and IPM output.
 
-## Simple IPM
+## Operational IPM
 
-The **Simple IPM** estimates demographic parameters at the **regional scale** for males and females, using informative priors derived from the *Complex IPM*.
+The **Operational IPM** estimates demographic parameters at the **regional scale** for males and females, using informative priors derived from the *Complex IPM*.
 
 ### Estimations by:
 
@@ -90,12 +90,12 @@ The **Simple IPM** estimates demographic parameters at the **regional scale** fo
 
 ### Data File:
 
-`Simple_IPM_run.Rdata` – Contains setup data and IPM output.
+`Operational_IPM_run.Rdata` – Contains setup data and IPM output.
 
 ## Evaluating Simple IPM with Vague Priors
 
-To assess the impact of informative priors, we also fitted the Simple IPM with vague `Beta(1,1)` priors on female harvest rates and survival.
+To assess the impact of informative priors, we also fitted the Operational IPM with vague `Beta(1,1)` priors on female harvest rates and survival.
 
 ### Data File:
 
-`Simple_IPM_run-vagueprior.Rdata` – Contains setup data and IPM output with vague priors.
+`Operational_IPM_run-vagueprior.Rdata` – Contains setup data and IPM output with vague priors.
