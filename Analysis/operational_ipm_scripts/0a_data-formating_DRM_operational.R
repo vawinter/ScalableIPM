@@ -6,11 +6,6 @@
 ###                                                                         ###X
 # Reading in data for fitting complex IPM
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #X
-# 
-# Created by: Veronica A. Winter
-# Created: October 2023
-# Last edited: XX/XX/XXXX
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #X
 ###############################################################################X
 
 # Clean env
@@ -24,7 +19,7 @@ library(dplyr)
 library(lubridate)
 
 # Bring in functions
-source("Analysis/Scripts/00_IPM_funs.R")
+source("Analysis/00_IPM_funs.R")
 
 # Data cleaning ----
 # This is mostly pulled from Duane's 'SpTurkeyHR2020-22RE_abundance.R' script

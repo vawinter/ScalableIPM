@@ -1,5 +1,11 @@
-# Formatting data and model together 
-# 03/2025
+###############################################################################X
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#################### Integrated Population Model (IPM): #######################X
+#                        #---# Research IPM #---#
+#        Creating a Bayesian IPM to inform turkey management in PA
+###               ***  Data formatting and model fitting ***                ###X
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #X
+###############################################################################X
 
 # Clean environment
 rm(list = ls())

@@ -8,10 +8,6 @@
 #
 # Using this script to format female data same as males (if we had enough F data)
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #X
-# 
-# Created by: Veronica A. Winter
-# Last edited: 01/01/2024
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #X
 ###############################################################################X
 
 # Clean env
@@ -25,7 +21,7 @@ library(dplyr)
 library(lubridate)
 
 # Bring in functions
-source("Analysis/00_IPM_funs.R")
+source("00_IPM_funs.R")
 
 # Data cleaning ----
 # This is mostly pulled from Duane's 'SpTurkeyHR2020-22RE_abundance.R' script

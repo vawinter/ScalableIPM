@@ -10,7 +10,7 @@ library(dplyr)
 library(tidyr)
 
 # Posteriors
-harvest_df <- readRDS("Data/Output/Simple_20250326_harvest_summary.rds") %>% 
+harvest_df <- readRDS("Data/Output/Operational_harvest_summary.rds") %>% 
   filter(sex == "Female")
 
 

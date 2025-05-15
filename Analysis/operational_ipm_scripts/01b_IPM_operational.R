@@ -1,6 +1,5 @@
 ###############################################################################X
 # Parallelized Simple Integrated Population Model (IPM) Script
-# Based on original script by Veronica A. Winter
 # Modified for parallel processing
 # https://r-nimble.org/nimbleExamples/parallelizing_NIMBLE.html
 ###############################################################################X
@@ -21,7 +20,7 @@ library(coda)
 set.seed(1235)
 
 ### Nimble model set up ----
-load("Data/Simple_IPM_setup-data/simple_IPM_data_Nimble_setup.RData")
+load("Data/Operational_IPM_setup-data/Operational_IPM_Nimble_data_setup.RData")
 
 ##################################################################X
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #

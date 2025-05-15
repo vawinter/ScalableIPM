@@ -7,11 +7,6 @@
 # Script to create data preparation functions for both IPM models
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #X
-# 
-# Created by: Veronica A. Winter
-# Created: January 2024
-# Last edited: XX/XX/XXXX
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #X
 ###############################################################################X
 # Load in libraries
 library(jagsUI)

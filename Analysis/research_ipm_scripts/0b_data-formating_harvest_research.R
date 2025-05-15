@@ -6,9 +6,6 @@
 ###                                                                         ###X
 # Formatting hunter harvest data the PGC received from game-take surveys
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #X
-# 
-# Created by: Veronica A. Winter
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #X
 ###############################################################################X
 
 

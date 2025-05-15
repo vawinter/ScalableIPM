@@ -5,11 +5,6 @@
 #        Creating a Bayesian IPM to inform turkey management in PA
 ###                     *** Output organization ***                         ###X
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #X
-# 
-# Created by: Veronica A. Winter
-# Last edited: 01/01/2024
-#
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #X
 ###############################################################################X
 # clean env
 rm(list = ls())

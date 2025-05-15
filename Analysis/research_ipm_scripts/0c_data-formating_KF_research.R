@@ -5,7 +5,7 @@ rm(list = ls())
 gc()
 
 # Source scripts of functions and data preparation
-source("Analysis/Scripts/00_IPM_funs.R")
+source("00_IPM_funs.R")
 
 # location of Turkey database
 access.dir <- "../../../TurkeyDatabase/"

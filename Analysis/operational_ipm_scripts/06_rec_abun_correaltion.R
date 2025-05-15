@@ -7,11 +7,6 @@
 ###                                                                         ###X
 #                 Correlation between recruitment and abundance
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #X
-# 
-# Created by: Veronica A. Winter
-# Last edited: 01/01/2024
-#
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #X
 ###############################################################################X
 rm(list = ls())
 gc()
@@ -25,12 +20,10 @@ library(ggridges)
 library(reshape2)
 library(patchwork)
 
-# of data output
-date <- "20250326"
 
 # Load data 
-abundance_df <- readRDS(paste0("../../PSUTurkey/turkey_IPM/Data/Output/Full_", date, "_abundance_summary.rds"))
-rec <- readRDS(paste0("../../PSUTurkey/turkey_IPM/Data/Output/Full_", date, "_rec_summary.rds"))
+abundance_df <- readRDS("Data/Output/Research_abundance_summary.rds")
+rec <- readRDS("Data/Output/Research_rec_summary.rds")
 
 abundance_df$group <- abundance_df$wmu
 rec$group <- rec$wmu

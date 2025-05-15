@@ -1,14 +1,9 @@
 ###############################################################################X
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #################### Integrated Population Model (IPM): #######################X
-#                 #---# PhD Dissertation: Chapter 1 #---#
+#                        #---# Research IPM #---#
 #        Creating a Bayesian IPM to inform turkey management in PA
 ###                     *** Output organization ***                         ###X
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #X
-# 
-# Created by: Veronica A. Winter
-# Last edited: 12/18/2024
-#
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #X
 ###############################################################################X
 # clean env

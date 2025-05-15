@@ -3,7 +3,6 @@
 ## ========================================= ###X
 # = Comparing model fit for full and simple    #X
 ##  ============ model outputs ============== ##X
-#                Created by: VAW               #X
 #                Date: 10/03/2024              #X
 ################################################X
 
@@ -15,18 +14,15 @@ library(knitr)
 library(dplyr)
 library(kableExtra)
 
-# of data output
-date <- "20250326"
-
 # Load data 
-kf_survival_df <- readRDS(paste0("Data/Output/Full_", date,"_kf-survival_summary.rds"))
-drm_harvest_df <- readRDS(paste0("Data/Output/Full_", date, "_harvest_summary.rds"))
-abundance_df <- readRDS(paste0("Data/Output/Full_", date, "_abundance_summary.rds"))
-drm_survival_df <- readRDS(paste0("Data/Output/Full_", date, "_drm_survival_summary.rds"))
-ppb <- readRDS(paste0("Data/Output/Full_", date, "_ppb_summary.rds"))
-hwb <- readRDS(paste0("Data/Output/Full_", date, "_hwb_summary.rds"))
-rec <- readRDS(paste0("Data/Output/Full_", date, "_rec_summary.rds"))
-combined_survival_df <- readRDS(paste0("Data/Output/Full_", date,"_comb-survival_summary.rds"))
+kf_survival_df <- readRDS("Data/Output/Research_kf-survival_summary.rds")
+drm_harvest_df <- readRDS("Data/Output/Research_harvest_summary.rds")
+abundance_df <- readRDS("Data/Output/Research_abundance_summary.rds")
+drm_survival_df <- readRDS("Data/Output/Research_drm_survival_summary.rds")
+ppb <- readRDS("Data/Output/Research_ppb_summary.rds")
+hwb <- readRDS("Data/Output/Research_hwb_summary.rds")
+rec <- readRDS("Data/Output/Research_rec_summary.rds")
+combined_survival_df <- readRDS("Data/Output/Research_comb-survival_summary.rds")
 
 # Load in WMU areas
 wmu_areas <- readRDS("../../PSUTurkey/turkey_IPM/Data/wmu_areas_km.rds")

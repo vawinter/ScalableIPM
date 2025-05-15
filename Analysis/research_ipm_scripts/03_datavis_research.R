@@ -8,11 +8,6 @@
 #                             Data visualization
 ###                                                                         ###X
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #X
-# 
-# Created by: Veronica A. Winter
-# Last edited: 10/01/2024
-#
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #X
 ###############################################################################X
 rm(list = ls())
 gc()
@@ -29,19 +24,15 @@ library(patchwork)
 # Are we savig for datavis or manu?
 selected_dir <- "Manuscript/"
 
-# of data output
-date <- "20241228"
-type <- "Full_"
-
 # Load data 
-kf_survival_df <- readRDS(paste0("Data/Output/", type, date,"_kf-survival_summary.rds"))
-drm_harvest_df <- readRDS(paste0("Data/Output/", type, date, "_harvest_summary.rds")) 
-abundance_df <- readRDS(paste0("Data/Output/", type, date, "_abundance_summary.rds"))
-drm_survival_df <- readRDS(paste0("Data/Output/", type, date, "_drm_survival_summary.rds"))
-combined_survival_df <- readRDS(paste0("Data/Output/", type, date,"_comb-survival_summary.rds"))
-ppb <- readRDS(paste0("Data/Output/", type, date, "_ppb_summary.rds"))
-hwb <- readRDS(paste0("Data/Output/", type, date, "_hwb_summary.rds"))
-rec <- readRDS(paste0("Data/Output/", type, date, "_rec_summary.rds"))
+kf_survival_df <- readRDS("Data/Output/Research_kf-survival_summary.rds")
+drm_harvest_df <- readRDS("Data/Output/Research_harvest_summary.rds")
+abundance_df <- readRDS("Data/Output/Research_abundance_summary.rds")
+drm_survival_df <- readRDS("Data/Output/Research_drm_survival_summary.rds")
+combined_survival_df <- readRDS("Data/Output/Research_comb-survival_summary.rds")
+ppb <- readRDS("Data/Output/Research_ppb_summary.rds")
+hwb <- readRDS("Data/Output/Research_hwb_summary.rds")
+rec <- readRDS("Data/Output/Research_rec_summary.rds")
 
 # Harvest
 # Load in WMU areas

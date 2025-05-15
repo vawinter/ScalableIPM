@@ -10,7 +10,7 @@ library(dplyr)
 library(tidyr)
 
 # Posteriors
-survival_df <- readRDS("Data/Output/Simple_20250326_comb-survival_summary.rds") %>% 
+survival_df <- readRDS("Data/Output/Operational_comb-survival_summary.rds") %>% 
   filter(sex == "Female")
 
 
