@@ -91,7 +91,7 @@ formatted_table <- complete_table %>%
   mutate(across(where(is.numeric), ~round(., 2))) %>% 
   mutate(Region = as.character(paste("Region", wmu, sep = " ")),
          Sex_Age_Class = paste(sex, age_class)) %>%
-  select(Sex_Age_Class, Region, mean_percent_shift , mean_abs_shift , mean_var_ratio)
+  select(Sex_Age_Class, Region, mean_percent_shift ,min_percent_shift ,max_percent_shift, mean_abs_shift)
 
 # Print formatted table
 print(formatted_table)
@@ -99,13 +99,13 @@ print(formatted_table)
 table_reg3 <- kable(formatted_table,
                     booktabs = TRUE,   
                     format = "html", 
-                    col.names = c("Sex & Age Class","Region","Percent shift (mean)", "Absolute shift (mean)", "Variance ratio (mean)")) %>%
+                    col.names = c("Sex & Age Class","Region","Percent shift (mean)","Percent shift (min)","Percent shift (max)", "Absolute shift (mean)")) %>%
   # Collapse rows for Sex/Age Class and WMU
   collapse_rows(columns = c(1, 2), latex_hline = "major", valign = "middle") %>%
   kable_styling(latex_options = c("hold_position", "repeat_header"), full_width = FALSE) 
 
 # Export to CSV
-write.csv(formatted_table, "percent_shift_summary.csv", row.names = FALSE)
+save_kable(table_reg3, file = "Dataviz/Appx7Tb1.html")
 
 # vague model ----
 # Posteriors
@@ -164,7 +164,7 @@ formatted_table <- complete_table %>%
   mutate(across(where(is.numeric), ~round(., 2))) %>% 
   mutate(Region = as.character(paste("Region", wmu, sep = " ")),
          Sex_Age_Class = paste(sex, age_class)) %>%
-  select(Sex_Age_Class, Region, mean_percent_shift , mean_abs_shift , mean_var_ratio)
+  select(Sex_Age_Class, Region, mean_percent_shift ,min_percent_shift ,max_percent_shift, mean_abs_shift)
 
 # Print formatted table
 print(formatted_table)
@@ -172,8 +172,8 @@ print(formatted_table)
 table_reg4 <- kable(formatted_table,
                     booktabs = TRUE,   
                     format = "html", 
-                    col.names = c("Sex & Age Class","Region","Percent shift (mean)", "Absolute shift (mean)", "Variance ratio (mean)")) %>%
+                    col.names = c("Sex & Age Class","Region","Percent shift (mean)","Percent shift (min)","Percent shift (max)", "Absolute shift (mean)")) %>%
   # Collapse rows for Sex/Age Class and WMU
   collapse_rows(columns = c(1, 2), latex_hline = "major", valign = "middle") %>%
   kable_styling(latex_options = c("hold_position", "repeat_header"), full_width = FALSE) 
-
+save_kable(table_reg4, file = "Dataviz/Appx7Tb3.html")

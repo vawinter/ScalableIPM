@@ -5,6 +5,7 @@ library(dplyr)
 library(ggridges)
 library(ggplot2)
 library(coda)
+library(kableExtra)
 
 # Function to calculate CV and aggregate by base parameter
 compute_cv <- function(data, model_name) {
@@ -82,7 +83,7 @@ table_wmu <- kable(cv_df_all,
   collapse_rows(columns = c(1, 2, 3), latex_hline = "major", valign = "middle") %>%
   kable_styling(latex_options = c("hold_position", "repeat_header"), full_width = FALSE) 
 
-save_kable(table_wmu, file = "Appx8Tb1.html")
+save_kable(table_wmu, file = "Dataviz/Appx8Tb1.html")
 ##########################X
 # Boxplots ----
 ##########################X
