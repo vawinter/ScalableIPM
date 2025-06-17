@@ -154,7 +154,7 @@ ipm <- nimbleCode({
   # WMU random effect  ----
   ###########################################################X
   telem.sigma ~ dunif(0, 5)
-  for (w in 1:4) {
+  for (w in 1:female.telem.wmu) {
     telem.beta.wmu[w] ~ dnorm(0, sd = telem.sigma)
   }
   
@@ -191,7 +191,7 @@ ipm <- nimbleCode({
         
         s.kf[i, y, m] <-  telem.beta.int[1] +   # Adult
           telem.beta.age[1] * telem.juvenile[i, y, m] +  # Juvenile-specific effect
-          inprod(telem.beta.wmu[1:4], telem.wmu[i, 1:4]) +  # WMU random effect
+          inprod(telem.beta.wmu[1:female.telem.wmu], telem.wmu[i, 1:female.telem.wmu]) +  # WMU random effect
           telem.beta.month[m]   # Month random effect
         
         #-------------------------------------------------------------------------X
@@ -218,12 +218,12 @@ ipm <- nimbleCode({
   }
   
   # For WMUs beyond the first
-  for (j in 1:(female.telem.wmu - 1)) {
+  for (j in 2:(female.telem.wmu)) {
     for (m in 1:12) {
       # Adults
-      storage[j + 1, 1, m] <- icloglog(telem.beta.int[1] + telem.beta.wmu[j] + telem.beta.month[m])
+      storage[j, 1, m] <- icloglog(telem.beta.int[1] + telem.beta.wmu[j] + telem.beta.month[m])
       # Juveniles
-      storage[j + 1, 2, m] <- icloglog(telem.beta.int[1] + telem.beta.age[1] + telem.beta.wmu[j] + telem.beta.month[m])
+      storage[j, 2, m] <- icloglog(telem.beta.int[1] + telem.beta.age[1] + telem.beta.wmu[j] + telem.beta.month[m])
     }
   }
   #---------------------------------------------------------------X
@@ -234,7 +234,7 @@ ipm <- nimbleCode({
     avg.ad.s.kf[j] <- prod(storage[j, 1, 1:12])  
   }
   #---------------------------------------------------------------X
-  # Calculate survival for Juveniles transitioning to Adults in June
+  # Calculate survival for Juvenile FEMALES transitioning to Adults in June
   #---------------------------------------------------------------X
   for (j in 1:female.telem.wmu) {
     # November and December survival using Jan as a proxy
@@ -242,10 +242,23 @@ ipm <- nimbleCode({
     # January to May
     juvenile_part2[j] <- prod(storage[j, 2, 1:5])   
     # June to December (aging up to adult)
-    adult_part[j] <- prod(storage[j, 1, 6:12])     
+    adult_part[j] <- prod(storage[j, 1, 6:10])     
     
     # Cumulative survival for each entry month
     avg.juv.s.kf[j] <- (juvenile_part1[j] * juvenile_part2[j])* adult_part[j] 
+  }
+  
+  #---------------------------------------------------------------X
+  # Calculate survival for Juvenile MALES surviving until Spring harvest 
+  #---------------------------------------------------------------X
+  for (j in 1:male.telem.wmu) {
+    # November and December survival using Jan as a proxy
+    juvenile_male_1[j] <- storage[j, 2, 1] * storage[j, 2, 1]     
+    # January to April
+    juvenile_male_2[j] <- prod(storage[j, 2, 1:4])   
+
+    # Cumulative survival until Spring harvest 
+    juv.male.adj[j] <- (juvenile_male_1[j] * juvenile_male_2[j])
   }
   
   ###########################################################X
@@ -414,8 +427,10 @@ ipm <- nimbleCode({
     male.N.ad[1, u] ~ dpois(N.lambda.ad.male[u])
 
     # Initial abundance for juvenile males in each WMU using 2020 hr
-    N.lambda.juv.male[u] <- (th.year1.male.juv[u]) / male.h.juv.wmu[1, u]
-    male.N.juv[1, u] ~ dpois(N.lambda.juv.male[u])
+    # adjust recruitment for males 
+  #  male.recruitment[1, u] <- recruitment[1, u] * juv.male.adj[1, u]
+   # N.lambda.juv.male[u] <- (th.year1.male.juv[u]) / male.h.juv.wmu[1, u]
+    male.N.juv[1, u] ~ dpois(N.lambda.juv.male[u]) # replace with adjusted recruitment here, same with females
   } # u
 
   # Loop over subsequent time occasions (2021-2023)
@@ -440,7 +455,9 @@ ipm <- nimbleCode({
       #----------------------------------------------------------#
       # Note: For males, these juveniles are from Nov (t-1) entering in May (t)
       #----------------------------------------------------------#
-      male.N.juv[t, u] ~ dpois(recruitment[t-1, u])
+      # adjust recruitment for males 
+      male.recruitment[t, u] <- recruitment[t-1, u] * juv.male.adj[t, u]
+      male.N.juv[t, u] ~ dpois(recruitment[t, u])
 
       # Lincoln-Petersen: Adult males in spring
       harvest.ad.spring[t, u] ~ dbin(prob = male.h.ad.wmu[t, u],
@@ -464,7 +481,7 @@ ipm <- nimbleCode({
     female.N.ad[1, u] ~ dpois(N.lambda.ad.female[u])
 
     # Initial abundance for juvenile females in each WMU using 2020 hr
-    N.lambda.juv.female[u] <- (th.year1.female.juv[u]) / female.h.juv.wmu[1, u]
+    N.lambda.juv.female[u] <- (th.year1.female.juv[u]) / female.h.juv.wmu[1, u] ## Maybes witch to rec year 1?
     female.N.juv[1, u] ~ dpois(N.lambda.juv.female[u])
 
     # Recruitment for the time occasion (2020)
@@ -495,7 +512,8 @@ ipm <- nimbleCode({
       female.N.ad[t, u] <- (female.N.ad.Survived[t, u] + female.N.juv.Survived[t, u])
 
       # New juveniles who entered the population
-      # For females, these juveniles are from Nov (t) entering in Nov (t)
+      # For females, these juveniles are from Nov (t) entering in Nov (t), so no adj.
+      # is needed
       female.N.juv[t, u] ~ dpois(recruitment[t, u])
 
 
