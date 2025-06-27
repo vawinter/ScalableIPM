@@ -18,7 +18,7 @@ The **Operational IPM** leverages informative priors from the Complex IPM poster
 
 **Recruitment**
 
-## Research IPM
+## Research IPM (R-IPM)
 
 The **Research IPM** estimates demographic parameters at the WMU scale for males and females.
 
@@ -56,7 +56,7 @@ The **Research IPM** estimates demographic parameters at the WMU scale for males
 
 `Research_IPM_run.Rdata` – Contains setup data and IPM output.
 
-## Operational IPM
+## Operational IPM (O-IPM)
 
 The **Operational IPM** estimates demographic parameters at the **regional scale** for males and females, using informative priors derived from the *Complex IPM*.
 
@@ -92,7 +92,7 @@ The **Operational IPM** estimates demographic parameters at the **regional scale
 
 `Operational_IPM_run.Rdata` – Contains setup data and IPM output.
 
-## Evaluating Simple IPM with Vague Priors
+## Evaluating O-IPM with Vague Priors (V-IPM)
 
 To assess the impact of informative priors, we also fitted the Operational IPM with vague `Beta(1,1)` priors on female harvest rates and survival.
 
