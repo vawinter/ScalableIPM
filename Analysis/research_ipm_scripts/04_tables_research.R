@@ -15,14 +15,14 @@ library(dplyr)
 library(kableExtra)
 
 # Load data 
-kf_survival_df <- readRDS("Data/Output/Research_kf-survival_summary.rds")
-drm_harvest_df <- readRDS("Data/Output/Research_harvest_summary.rds")
-abundance_df <- readRDS("Data/Output/Research_abundance_summary.rds")
-drm_survival_df <- readRDS("Data/Output/Research_drm_survival_summary.rds")
-ppb <- readRDS("Data/Output/Research_ppb_summary.rds")
-hwb <- readRDS("Data/Output/Research_hwb_summary.rds")
-rec <- readRDS("Data/Output/Research_rec_summary.rds")
-combined_survival_df <- readRDS("Data/Output/Research_comb-survival_summary.rds")
+kf_survival_df <- readRDS("Data/Output/R__kf-survival_summary.rds")
+drm_harvest_df <- readRDS("Data/Output/R__harvest_summary.rds")
+abundance_df <- readRDS("Data/Output/R__abundance_summary.rds")
+drm_survival_df <- readRDS("Data/Output/R__drm_survival_summary.rds")
+ppb <- readRDS("Data/Output/R__ppb_summary.rds")
+hwb <- readRDS("Data/Output/R__hwb_summary.rds")
+rec <- readRDS("Data/Output/R__rec_summary.rds")
+combined_survival_df <- readRDS("Data/Output/R__comb-survival_summary.rds")
 
 # Load in WMU areas
 wmu_areas <- readRDS("../../PSUTurkey/turkey_IPM/Data/wmu_areas_km.rds")

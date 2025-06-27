@@ -24,9 +24,6 @@ library(lubridate)
 source("00_IPM_funs.R")
 
 # Data cleaning ----
-# This is mostly pulled from Duane's 'SpTurkeyHR2020-22RE_abundance.R' script
-
-# #### Read in data and select data used for analysis
 #### Read in data and select data used for analysis
 # # Release data
 df2a <- read.csv("Data/Banding_harv_data/Band Data Export Report_20240909.csv")  # release data
@@ -161,7 +158,7 @@ female_data <- list(
 )
 ##-----------------------------------------------------#X
 # Define a directory where you want to save the RDS files
-output_dir <- "Data/IPM_setup-data_full/"
+output_dir <- "Data/Research_IPM_setup-data/"
 
 # Loop through the list and save each variable as a separate RDS file
 for (var_name in names(female_data)) {
@@ -286,13 +283,11 @@ male_data <- list(
   male.z = known.state,
   male.y = MR,
   male.n.wmu = length(unique(df$wmu)),
-  male.wmu = df$wmu # for now, will be grp in simple IPM
-  # male.DRM.wmu = length(unique(df$wmu)),
-  # male.DRM.wmu = df$wmu
+  male.wmu = df$wmu 
 )
 ##-----------------------------------------------------#X
 # Define a directory where you want to save the RDS files
-output_dir <- "Data/IPM_setup-data_test/"
+output_dir <- "Data/Research_IPM_setup-data/"
 
 # Loop through the list and save each variable as a separate RDS file
 for (var_name in names(male_data)) {

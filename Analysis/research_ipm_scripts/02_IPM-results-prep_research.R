@@ -47,10 +47,10 @@ wmu_areas <- readRDS("Data/wmu_areas_km.rds")
 # "female.N.ad", "female.N.juv"
 
 ###-----------------------------------------------------#X
-load("Data/Research_IPM_run.Rdata")
+load("Data/Output/R_IPM_run.Rdata")
 
 # `samples` is an MCMC array with dimensions [WMU, Year]
-samples_df <- as.data.frame(ipm_run$chain1)
+samples_df <- as.data.frame(combined_results[[1]])
 
 # Process each category using the function ----
 # KF survival for..
@@ -160,7 +160,7 @@ if (!dir.exists(folder_path)) {
 } else {
   message("Folder already exists: ", folder_path)
 }
-type = "Research_"
+type = "R_"
 saveRDS(kf_survival_df, paste0("Data/Output/", type, "_kf-survival_summary.rds"))
 saveRDS(combined_survival_df, paste0("Data/Output/", type, "_comb-survival_summary.rds"))
 saveRDS(drm_harvest_df, paste0("Data/Output/", type,  "_harvest_summary.rds"))

@@ -1,6 +1,6 @@
 ###############################################################################X
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-################### Full Integrated Population Model (IPM): ###################X
+############## Research Integrated Population Model (R IPM): ##################X
 ###                                                                         ###X
 #    Modeling: Known fate (kf) for hen annual survival, Hen with brood (HWB) and 
 #       Pouts per brood (PPB) recruitment models, Dead-recovery model (DRM) for 
@@ -48,7 +48,7 @@ set.seed(1235)
 ##################################################################X
 
 ### Nimble model set up ----
-load("Data/Complex_IPM_Nimble_data_setup.RData")
+load("Data/Research_IPM_setup-data/R_IPM_Nimble_data_setup.RData")
 
 #############################################################X
 # Parallelization setup -----
@@ -94,7 +94,8 @@ run_parallel_mcmc <- function(seed_offset) {
       "female.h.ad.wmu", "female.h.juv.wmu",  
       "male.N.ad", "male.N.juv",
       "female.N.ad", "female.N.juv",  
-      "avg.ad.s.kf", "avg.juv.s.kf", "storage"
+      "avg.ad.s.kf", "avg.juv.s.kf", "storage", 
+      "juv.male.adj"
     ),
     niter = ni, 
     nburnin = nb, 
@@ -130,17 +131,17 @@ print(paste("Total parallel processing time:", end - start))
 #############################################################X
 combined_results <- coda::as.mcmc.list(lapply(results, coda::as.mcmc))
 ##------------------##X
-# if parallel need
-cl <- makeCluster(max(1, detectCores() - 1))
-registerDoParallel(cl)
-
-# Parallel conversion of results to MCMC
-combined_results <- foreach(
-  result = results,
-  .packages = "coda"
-) %dopar% {
-  as.mcmc(result)
-}
+# # if parallel need
+# cl <- makeCluster(max(1, detectCores() - 1))
+# registerDoParallel(cl)
+# 
+# # Parallel conversion of results to MCMC
+# combined_results <- foreach(
+#   result = results,
+#   .packages = "coda"
+# ) %dopar% {
+#   as.mcmc(result)
+# }
 
 # Convert to mcmc.list
 combined_results <- as.mcmc.list(combined_results)
@@ -149,8 +150,8 @@ combined_results <- as.mcmc.list(combined_results)
 stopCluster(cl)
 ##------------------##X
 # Save output
-saveRDS(combined_results, "Data/Output/Complex_IPM_run.rds")
-save.image(file = "Data/Output/Complex_IPM_run.Rdata")
+saveRDS(combined_results, "Data/Output/R_IPM_run.rds")
+save.image(file = "Data/Output/R_IPM_run.Rdata")
 
 #############################################################X
 # Model diagnostics -----
@@ -159,17 +160,16 @@ save.image(file = "Data/Output/Complex_IPM_run.Rdata")
 library(MCMCvis)
 
 # Summarize results
-lapply(combined_results, function(result) {
-  MCMCsummary(result, params = c(
+MCMCsummary(combined_results, params = c(
     "avg.ad.s.kf", "avg.juv.s.kf",
     "male.h.ad.wmu", "female.h.juv.wmu",
     "female.N.ad", "female.N.juv"
-  ))
-})
+))
+
 
 # Trace plots (adjust as needed for parallel processing)
-MCMCvis::MCMCtrace(combined_results[[1]], pdf = FALSE, 
-                   params = c("male.N.ad"), iter = 1200000)
+MCMCvis::MCMCtrace(combined_results, pdf = FALSE, 
+                   params = c("juv.male.adj"), iter = 1200000)
 
 # Diagnostic checks
 # Note: These may need modification for parallel results

@@ -186,7 +186,6 @@ ipm <- nimbleCode({
         # telem.juvenile[i, y, m]: Indicator for juvenile status (1 if juvenile, 0 if adult)
         # inprod(telem.beta.wmu[1:4], telem.wmu[i, 1:4]): Captures spatial random effect for WMU
         # telem.beta.month[m]: Monthly survival effect to capture seasonal variation
-        # step(m - telem.first[i]): holds the first month at the intercept
         #-------------------------------------------------------------------------X
         
         s.kf[i, y, m] <-  telem.beta.int[1] +   # Adult
@@ -251,7 +250,7 @@ ipm <- nimbleCode({
   #---------------------------------------------------------------X
   # Calculate survival for Juvenile MALES surviving until Spring harvest 
   #---------------------------------------------------------------X
-  for (j in 1:male.telem.wmu) {
+  for (j in 1:male.n.wmu) { 
     # November and December survival using Jan as a proxy
     juvenile_male_1[j] <- storage[j, 2, 1] * storage[j, 2, 1]     
     # January to April
@@ -427,10 +426,12 @@ ipm <- nimbleCode({
     male.N.ad[1, u] ~ dpois(N.lambda.ad.male[u])
 
     # Initial abundance for juvenile males in each WMU using 2020 hr
+    N.lambda.juv.male[u] <- (th.year1.male.juv[u]) / male.h.juv.wmu[1, u]
+    male.N.juv[1, u] ~ dpois(N.lambda.juv.male[u]) 
+   
     # adjust recruitment for males 
-  #  male.recruitment[1, u] <- recruitment[1, u] * juv.male.adj[1, u]
-   # N.lambda.juv.male[u] <- (th.year1.male.juv[u]) / male.h.juv.wmu[1, u]
-    male.N.juv[1, u] ~ dpois(N.lambda.juv.male[u]) # replace with adjusted recruitment here, same with females
+     male.recruitment[1, u] <- recruitment[1, u] * juv.male.adj[u]
+    # male.N.juv[1, u] ~ dpois(male.recruitment[1, u]) # I dont think this can work because we are using the previous years recruitment for males
   } # u
 
   # Loop over subsequent time occasions (2021-2023)
@@ -456,8 +457,8 @@ ipm <- nimbleCode({
       # Note: For males, these juveniles are from Nov (t-1) entering in May (t)
       #----------------------------------------------------------#
       # adjust recruitment for males 
-      male.recruitment[t, u] <- recruitment[t-1, u] * juv.male.adj[t, u]
-      male.N.juv[t, u] ~ dpois(recruitment[t, u])
+      male.recruitment[t, u] <- recruitment[t, u] * juv.male.adj[u]
+      male.N.juv[t, u] ~ dpois(male.recruitment[t-1, u])
 
       # Lincoln-Petersen: Adult males in spring
       harvest.ad.spring[t, u] ~ dbin(prob = male.h.ad.wmu[t, u],
@@ -471,7 +472,7 @@ ipm <- nimbleCode({
   } # u
 
   #---------------------------------------------------------------------#X
-  # Female Abundancem (November t -> November t+1)
+  # Female Abundance (November t -> November t+1)
   #---------------------------------------------------------------------#X
 
   for (u in 1:female.n.wmu) {
@@ -481,9 +482,9 @@ ipm <- nimbleCode({
     female.N.ad[1, u] ~ dpois(N.lambda.ad.female[u])
 
     # Initial abundance for juvenile females in each WMU using 2020 hr
-    N.lambda.juv.female[u] <- (th.year1.female.juv[u]) / female.h.juv.wmu[1, u] ## Maybes witch to rec year 1?
+    N.lambda.juv.female[u] <- (th.year1.female.juv[u]) / female.h.juv.wmu[1, u] 
     female.N.juv[1, u] ~ dpois(N.lambda.juv.female[u])
-
+    
     # Recruitment for the time occasion (2020)
     recruitment[1, u] <- ((female.N.ad[1, u] * aug31.hwb[1, u]) * aug31.ppb[1, u])/2
 

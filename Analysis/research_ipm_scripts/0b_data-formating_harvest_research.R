@@ -114,17 +114,10 @@ for (i in 1:nrow(wmu_fall_juv)) {
 
 
 # ... save
-saveRDS(spring, "Data/IPM_setup-data - Copy/harvest_spring.rds")
-saveRDS(fall, "Data/IPM_setup-data - Copy/harvest_fall.rds")
-
-# saveRDS(harvest.ad.spring, "Data/Simple_IPM_setup-data/harvest.ad.spring.rds")
-# 
-# saveRDS(harvest.ad.fall, "Data/Simple_IPM_setup-data/harvest.ad.fall.rds")
-
-saveRDS(harvest.ad.spring, "Data/IPM_setup-data_test/harvest.ad.spring.rds")
-saveRDS(harvest.juv.spring, "Data/IPM_setup-data_test/harvest.juv.spring.rds")
-saveRDS(harvest.ad.fall, "Data/IPM_setup-data_test/harvest.ad.fall.rds")
-saveRDS(harvest.juv.fall, "Data/IPM_setup-data_test/harvest.juv.fall.rds")
+saveRDS(harvest.ad.spring, "Data/Research_IPM_setup-data/harvest.ad.spring.rds")
+saveRDS(harvest.juv.spring, "Data/Research_IPM_setup-data/harvest.juv.spring.rds")
+saveRDS(harvest.ad.fall, "Data/Research_IPM_setup-data/harvest.ad.fall.rds")
+saveRDS(harvest.juv.fall, "Data/Research_IPM_setup-data/harvest.juv.fall.rds")
 
 
 

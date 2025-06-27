@@ -20,23 +20,21 @@ library(knitr)
 library(ggridges)
 library(reshape2)
 library(patchwork)
-
-# Are we savig for datavis or manu?
-selected_dir <- "Manuscript/"
+selected_dir <- "Datavis/"
 
 # Load data 
-kf_survival_df <- readRDS("Data/Output/Research_kf-survival_summary.rds")
-drm_harvest_df <- readRDS("Data/Output/Research_harvest_summary.rds")
-abundance_df <- readRDS("Data/Output/Research_abundance_summary.rds")
-drm_survival_df <- readRDS("Data/Output/Research_drm_survival_summary.rds")
-combined_survival_df <- readRDS("Data/Output/Research_comb-survival_summary.rds")
-ppb <- readRDS("Data/Output/Research_ppb_summary.rds")
-hwb <- readRDS("Data/Output/Research_hwb_summary.rds")
-rec <- readRDS("Data/Output/Research_rec_summary.rds")
+kf_survival_df <- readRDS("Data/Output/R__kf-survival_summary.rds")
+drm_harvest_df <- readRDS("Data/Output/R__harvest_summary.rds")
+abundance_df <- readRDS("Data/Output/R__abundance_summary.rds")
+drm_survival_df <- readRDS("Data/Output/R__drm_survival_summary.rds")
+combined_survival_df <- readRDS("Data/Output/R__comb-survival_summary.rds")
+ppb <- readRDS("Data/Output/R__ppb_summary.rds")
+hwb <- readRDS("Data/Output/R__hwb_summary.rds")
+rec <- readRDS("Data/Output/R__rec_summary.rds")
 
 # Harvest
 # Load in WMU areas
-wmu_areas <- readRDS("../turkey_IPM/Data/wmu_areas_km.rds")
+wmu_areas <- readRDS("Data/wmu_areas_km.rds")
 
 # Format harvest data
 dat <- read.csv("Data/Banding_harv_data/FallSprHarvData_20240919.csv", header=T)
@@ -210,7 +208,7 @@ harvest_plot <- ggplot(drm_harvest_df, aes(y = median_value, x = year,
     )) +
 
   scale_x_continuous(breaks = c(1, 2, 3, 4), labels = c("2020", "2021", "2022", "2023")) +  # Change x-axis labels
-  scale_y_continuous(limits = c(0, 0.43)) +  # Set y-axis limits
+  scale_y_continuous(limits = c(0, 0.6)) +  # Set y-axis limits
   annotate("segment", x = Inf, xend = Inf, y = -Inf, yend = Inf, color = "black", linetype = "dashed") +
   labs(x = "Year", y = "Harvest rate", shape = "", color = "") +  # Modify legend titles
   
@@ -285,7 +283,7 @@ survival_plot <- ggplot(combined_survival_df, aes(y = median_value, x = year,
 plot <- harvest_plot/survival_plot
 
 ### Save the harv/den ----
-ggsave(paste0(selected_dir, "Full_IPM_plot.png"), plot = plot, width = 15, height = 10, dpi = 700)
+ggsave(paste0(selected_dir, "R_IPM_plot.png"), plot = plot, width = 15, height = 10, dpi = 700)
 ggsave("Manuscript/complex_3D-surv.png", plot = plot, width = 10, height = 10, dpi = 700)
 
 
@@ -334,8 +332,7 @@ abundance_plot <- ggplot(abundance_df_overall, aes(y = median_value / area_sq_km
 
 
 ### Save abudnance ----
-ggsave(paste0(selected_dir, "Full_abun_plot.png"), plot = abundance_plot, width = 15, height = 10, dpi = 700)
-ggsave("Manuscript/complex_3D.png", plot = abundance_plot, width = 10, height = 10, dpi = 700)
+ggsave(paste0(selected_dir, "R_abun_plot.png"), plot = abundance_plot, width = 15, height = 10, dpi = 700)
 
 # age class abundance:
 ## Abundance Plot ----
@@ -368,10 +365,6 @@ abundance_plot <- ggplot(abundance_df, aes(y = median_value / area_sq_km, x = ye
   # Combine the shape and color legends
   guides(color = guide_legend(override.aes = list(shape = c(16, 17, 8))),  # Override shapes in the color legend
          shape = guide_none()) +  # Hide the separate shape legend
-  #  ylim(0, 3) +
-  # # Combine the shape and color legends
-  # guides(color = guide_none(),  # Override shapes in the color legend
-  #        shape = guide_none()) +  # Hide the separate shape legend
   annotate("segment", x = Inf, xend = Inf, y = -Inf, yend = Inf, color = "black", linetype = "dashed") +
   theme_classic() +
   theme(
@@ -557,6 +550,6 @@ recruitment_plot <- ggplot(rec, aes(y = density_value, x = year, shape = wmu, co
 
 
 ### Save the survival/rec ----
-ggsave("Manuscript/Full_kf_survival_plot.png", plot = kf_survival_plot,  width = 8, height = 6, dpi = 700)
-ggsave("Manuscript/Full_rec_plot.png", plot = recruitment_plot, width = 8, height = 7, dpi = 700)
+ggsave("Datavis/R_kf_survival_plot.png", plot = kf_survival_plot,  width = 8, height = 6, dpi = 700)
+ggsave("Datavis/R_rec_plot.png", plot = recruitment_plot, width = 8, height = 7, dpi = 700)
 
