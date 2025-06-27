@@ -92,7 +92,7 @@ The **Operational IPM** estimates demographic parameters at the **regional scale
 
 `Operational_IPM_run.Rdata` – Contains setup data and IPM output.
 
-## Evaluating O-IPM with Vague Priors (V-IPM)
+## Evaluating Simple IPM with Vague Priors
 
 To assess the impact of informative priors, we also fitted the Operational IPM with vague `Beta(1,1)` priors on female harvest rates and survival.
 
