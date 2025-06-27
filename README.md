@@ -98,4 +98,4 @@ To assess the impact of informative priors, we also fitted the Operational IPM w
 
 ### Data File:
 
-`Operational_IPM_run-vagueprior.Rdata` – Contains setup data and IPM output with vague priors.
+`vague_IPM.R` – Contains the V-IPM model and the setup data data is `Operational_IPM_run.Rdata`. The set up data does not differ, only priors in the model.
