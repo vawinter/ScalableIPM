@@ -18,15 +18,8 @@ library(knitr)
 library(dplyr)
 library(kableExtra)
 
-# Are we savig for datavis or manu?
-selected_dir <- "Manuscript/"
-
-# of data output
-date <- "20250326"
-type <- "Full_"
-
 # Load data
-abundance_df <- readRDS(paste0("Data/Output/", type, date, "_abundance_summary.rds"))
+abundance_df <- readRDS(paste0("Data/Output/R__abundance_summary.rds"))
 
 #############################
 # Format harvest data
@@ -123,7 +116,7 @@ combined_df <- abundance_df %>%
 # Calculate R² values for each group
 correlations_groups_r2 <- combined_df %>%
   mutate(Sex_Age_Class = paste(sex, age_class)) %>%
-  group_by(Sex_Age_Class, wmu,) %>%
+  group_by(wmu) %>%
   summarise(
     # Calculate Pearson correlation and square it to get R²
     r_squared = summary(lm(harvest ~ abundance))$r.squared,
@@ -145,7 +138,7 @@ date <- "20250326"
 type <- "Simple_"
 
 # Load data
-abundance_df <- readRDS(paste0("Data/Output/", type, date, "_abundance_summary.rds"))
+abundance_df <- readRDS(paste0("Data/Output/O_abundance_summary.rds"))
 
 #############################
 # Format harvest data
@@ -243,7 +236,7 @@ combined_df <- abundance_df %>%
 # Calculate R² values for each group
 correlations_groups_r2 <- combined_df %>%
   mutate(Sex_Age_Class = paste(sex, age_class)) %>%
-#  group_by(Sex_Age_Class, Region) %>%
+ # group_by(Region) %>%
   summarise(
     # Calculate Pearson correlation and square it to get R²
     r_squared = summary(lm(harvest ~ abundance))$r.squared,

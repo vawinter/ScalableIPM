@@ -37,9 +37,9 @@ compute_cv <- function(data, model_name) {
 }
 
 # Load and process models
-mod1 <- readRDS("../../PSUTurkey/turkey_IPM/Data/IPM_runs/Complex_IPM_run.rds")[[2]] %>% as.data.frame()
-mod2 <- readRDS("../../PSUTurkey/turkey_IPM/Data/IPM_runs/20250326_Parallel_Simple_IPM_run.rds")[[2]] %>% as.data.frame()
-vague <- readRDS("../../PSUTurkey/turkey_IPM/Data/IPM_runs/20250326_Parallel_Simple_vague_IPM_run.rds")[[2]] %>% as.data.frame()
+mod1 <- readRDS("Data/Output/R_IPM_run.rds")[[1]] %>% as.data.frame()
+mod2 <- readRDS("Data/Output/20250623_Parallel_O_IPM_run.rds")[[1]] %>% as.data.frame()
+vague <- readRDS("Data/Output/20250625_Parallel_O_vague_IPM_run.rds")[[1]] %>% as.data.frame()
 
 # Process the posteriors
 research_cv <- compute_cv(mod1, "Research")
@@ -47,7 +47,8 @@ operational_cv <- compute_cv(mod2, "Operational")
 vague_cv <- compute_cv(vague, "Vague")
 
 # Combine results
-cv_df_all <- bind_rows(research_cv, operational_cv, vague_cv) %>% 
+cv_df_all <- bind_rows(research_cv, operational_cv, vague_cv
+                       ) %>% 
   mutate(Base_Parameter = recode(Base_Parameter,
                                  "male.N.juv" = "Juvenile Male Abundance",
                                  "female.N.juv" = "Juvenile Female Abundance",
@@ -65,7 +66,8 @@ cv_df_all <- bind_rows(research_cv, operational_cv, vague_cv) %>%
   )) %>% 
   filter(!Base_Parameter %in% c("aug31.ppb", "aug31.hwb")) %>% 
   dplyr::select(Model, Base_Parameter, avgCV) %>% 
-  mutate(avgCV = round(avgCV, 3))
+  mutate(avgCV = round(avgCV, 3)) %>% 
+  distinct()
 
 
 # Print result
@@ -87,43 +89,37 @@ save_kable(table_wmu, file = "Dataviz/Appx8Tb1.html")
 ##########################X
 # Boxplots ----
 ##########################X
+library(stringr)
+
 box <- cv_df_all %>% 
   filter(Base_Parameter %in% c("Adult Female Abundance",
                                "Adult Female Survival",
                                "Adult Female Harvest Rate",
-                                "Juvenile Female Abundance",
+                               "Juvenile Female Abundance",
                                "Juvenile Female Survival",
                                "Juvenile Female Harvest Rate",
-                               "Recruitment"
-                               # "Adult Male Abundance",
-                               # "Adult Male Survival",
-                               # "Adult Male Harvest Rate",
-                               # "Juvenile Male Abundance",
-                               # "Juvenile Male Survival",
-                               # "Juvenile Male Harvest Rate"
-                               )) %>%  
-  mutate(Model = factor(Model, levels = c("Research", "Operational", "Vague"))) %>%
-ggplot(aes(x = Base_Parameter, y = CV, fill = Model)) +
+                               "Recruitment")) %>%  
+  mutate(Model = factor(Model, levels = c("Research", "Operational", "Vague")),
+         Base_Parameter = str_wrap(Base_Parameter, width = 10)) %>%  # Wrap at 10 characters
+  ggplot(aes(x = Base_Parameter, y = CV, fill = Model)) +
   scale_fill_manual(values = c("Research" = "#b3cde3", "Operational" = "#B34170", "Vague" = "#8856a7")) +
   geom_boxplot(alpha = 0.7, outlier.shape = 16, outlier.size = 2) +
-  labs(x = "", y = "Coefficient of Variation (CV)", fill = "") +
+  labs(x = "", y = "CV", fill = "") +
   theme_classic() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+  theme(axis.text.x = element_text(angle = 0, hjust = 0.5),  # Remove angle since text is wrapped
         text = element_text(size = 14),
         axis.title = element_text(size = 14),
         axis.text = element_text(size = 14),
-        strip.text = element_blank(),      # Remove WMU labels
+        strip.text = element_blank(),
         legend.title = element_text(size = 14, face = "bold"),
         legend.text = element_text(size = 14),
         legend.position = "top",
-        legend.key = element_rect(fill = "white"),  # Customize legend key appearance
-        legend.key.size = unit(1.5, "lines"))  # Rotate axis labels for clarity
-
+        legend.key = element_rect(fill = "white"),
+        legend.key.size = unit(1.5, "lines"))
 
 box
 
-
-ggsave("../../Manuscripts/ScalableIPM/Dataviz/Model_CV_rec.png", plot = box, width = 10, height = 6, dpi = 700)
+ggsave("Dataviz/Model_CV_rec.png", plot = box, width = 10, height = 6, dpi = 700)
 ggsave("../../Manuscripts/ScalableIPM/Dataviz/Model_CV_rec.pdf", plot = box, width = 10, height = 6, dpi = 700)
 #--------------X
 male_box <- cv_df_all %>% 
@@ -132,15 +128,26 @@ male_box <- cv_df_all %>%
                                "Adult Male Harvest Rate",
                                "Juvenile Male Abundance",
                                "Juvenile Male Survival",
-                               "Juvenile Male Harvest Rate")) %>% 
+                               "Juvenile Male Harvest Rate"))%>%  
+  mutate(Model = factor(Model, levels = c("Research", "Operational", "Vague")),
+         Base_Parameter = str_wrap(Base_Parameter, width = 10)) %>%  # Wrap at 10 characters
   ggplot(aes(x = Base_Parameter, y = CV, fill = Model)) +
+  scale_fill_manual(values = c("Research" = "#b3cde3", "Operational" = "#B34170", "Vague" = "#8856a7")) +
   geom_boxplot(alpha = 0.7, outlier.shape = 16, outlier.size = 2) +
-  ylim(c(0, 2)) +
-  labs(x = "", y = "Coefficient of Variation (CV)", , fill = "") +
+  labs(x = "", y = "CV", fill = "") +
   theme_classic() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate axis labels for clarity
+  theme(axis.text.x = element_text(angle = 0, hjust = 0.5),  # Remove angle since text is wrapped
+        text = element_text(size = 14),
+        axis.title = element_text(size = 14),
+        axis.text = element_text(size = 14),
+        strip.text = element_blank(),
+        legend.title = element_text(size = 14, face = "bold"),
+        legend.text = element_text(size = 14),
+        legend.position = "top",
+        legend.key = element_rect(fill = "white"),
+        legend.key.size = unit(1.5, "lines"))  # Rotate axis labels for clarity
 
-
+ggsave("Dataviz/appx6_fig1.png", plot = male_box, width = 10, height = 6, dpi = 700)
 
 
 

@@ -77,19 +77,11 @@ hen_histories <- function(df, filter_sex = NA) {
         TRUE ~ "Alive"
       ),
       end = case_when(
-        fate == "Alive" ~ Sys.Date(),
+        fate == "Alive" ~ as.Date("2023-12-31"),
         fate == "Censor" ~ censor,
         fate == "Dead" ~ mort
       )
-    )
-  
-  # Transition juveniles to adults after year 1 (transition in June)
-  df <- df %>%
-    mutate(age = case_when(
-      age == "J" & !is.na(end) & month(end) %in% 5:12 & year(end) > captyr ~ "A",
-      age == "A" ~ "A",
-      TRUE ~ "J"
-    ))
+    ) 
   
   # Define study period
   start_year <- year(min(df$begin, na.rm = TRUE))
@@ -107,17 +99,13 @@ hen_histories <- function(df, filter_sex = NA) {
       year_end = year(end) - start_year + 1      # Relative end year
     )
   
-  # Create is.juvenile variable
-  df <- df %>%
-    mutate(is.juvenile = ifelse(age == "J", 1, 0))
-  
-  # Add WMU indicator variables
+   # Add WMU indicator variables
   df <- df %>%
     mutate(
       is.2d = ifelse(studyarea == "2D", 1, 0),
       is.3d = ifelse(studyarea == "3D", 1, 0),
       is.5c = ifelse(studyarea == "5C", 1, 0),
-      is.4d = ifelse(studyarea == "4D", 1, 0)  # Intercept WMU
+      is.4d = ifelse(studyarea == "4D", 1, 0)  
     )
   
   # Initialize the telem_month array with dimensions: [individuals, years, months]
@@ -142,19 +130,30 @@ hen_histories <- function(df, filter_sex = NA) {
   is_juvenile_matrix <- array(0, dim = c(telem.nind, telem.nyears, 12))
   is_data <- array(0, dim = c(telem.nind, telem.nyears, 12))
   
-  # Fill the 3D arrays (is_juvenile_matrix and is_data)
   for (i in 1:telem.nind) {
     for (y in 1:telem.nyears) {
       for (m in 1:12) {
-        # Calculate the start and stop months relative to each year
         month_index <- (y - 1) * 12 + m
         if (month_index >= df$start[i] && month_index <= df$stop[i]) {
-          is_juvenile_matrix[i, y, m] <- df$is.juvenile[i]
-          is_data[i, y, m] <- 1  # Mark the data as observed
+          
+          # Calendar year and month
+          this_year <- df$captyr[i] + y - 1
+          this_month <- m
+          
+          # Determine juvenile status
+          if (df$age[i] == "J" && this_year == df$captyr[i] && this_month <= 5) {
+            is_juvenile_matrix[i, y, m] <- 1  # Juvenile Jan–June of capture year
+          } else {
+            is_juvenile_matrix[i, y, m] <- 0  # Adult otherwise
+          }
+          
+          is_data[i, y, m] <- 1  # Data is present
         }
       }
     }
   }
+  
+  
   
   # Return the processed dataframe, is_juvenile_matrix, is_data, and telem_month
   return(list(
