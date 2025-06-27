@@ -15,8 +15,7 @@ gc()
 # libraries
 library(dplyr)
 
-dat <- read.csv("Data/Banding_harv_data/FallSprHarvData_20240919.csv")
-#dat <- read.csv("Data/Banding_harv_data/FallSprHarvData-indivWMU.csv")
+dat <- read.csv("../../PSUTurkey/turkey_IPM/Data/Banding_harv_data/FallSprHarvData_20240919.csv")
 head(dat)
 
 #... by season
@@ -110,17 +109,14 @@ for (i in 1:nrow(wmu_fall_juv)) {
 
 
 # ... save
-saveRDS(spring, "Data/Simple_IPM_setup-data/harvest_spring.rds")
-saveRDS(fall, "Data/Simple_IPM_setup-data/harvest_fall.rds")
+saveRDS(spring, "Data/Operational_IPM_setup-data/harvest_spring.rds")
+saveRDS(fall, "Data/Operational_IPM_setup-data/harvest_fall.rds")
+saveRDS(harvest.ad.spring, "Data/Operational_IPM_setup-data/harvest.ad.spring.rds")
+saveRDS(harvest.juv.spring, "Data/Operational_IPM_setup-data/harvest.juv.spring.rds")
+saveRDS(harvest.ad.fall, "Data/Operational_IPM_setup-data/harvest.ad.fall.rds")
+saveRDS(harvest.juv.fall, "Data/Operational_IPM_setup-data/harvest.juv.fall.rds")
 
-# saveRDS(harvest.ad.spring, "Data/Simple_IPM_setup-data/harvest.ad.spring.rds")
-# 
-# saveRDS(harvest.ad.fall, "Data/Simple_IPM_setup-data/harvest.ad.fall.rds")
-
-saveRDS(harvest.ad.spring, "Data/Simple_IPM_setup-data/harvest.ad.spring.rds")
-saveRDS(harvest.juv.spring, "Data/Simple_IPM_setup-data/harvest.juv.spring.rds")
-saveRDS(harvest.ad.fall, "Data/Simple_IPM_setup-data/harvest.ad.fall.rds")
-saveRDS(harvest.juv.fall, "Data/Simple_IPM_setup-data/harvest.juv.fall.rds")
+# Done formatting harvest data from Game-take Surveys
 
 
 

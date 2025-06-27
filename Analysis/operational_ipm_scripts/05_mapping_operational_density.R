@@ -33,10 +33,10 @@ states <- st_as_sf(maps::map("state", plot = FALSE, fill = TRUE))
 pa <- states %>% filter(ID == "pennsylvania")
 
 # Read in shapefile of WMUs
-wmu_shapefile <- st_read("../TurkeyProject/Data/PGC_BNDWildlifeManagementUnits2024.shp")
+wmu_shapefile <- st_read("Data/PGC_BNDWildlifeManagementUnits2024.shp")
 
 # Read in abundance data
-abundance_df <- readRDS("Data/Output/Operational_abundance_summary.rds")
+abundance_df <- readRDS("Data/Output/O_abundance_summary.rds")
 
 # Create WMU groups based on criteria
 wmu_shapefile <- wmu_shapefile %>%
@@ -58,7 +58,7 @@ wmu_shapefile <- wmu_shapefile %>%
 
 # Summarize abundance data
 abundance_df_totals <- abundance_df %>%
-  group_by(group, year, sex) %>%
+  group_by(Region, year, sex) %>%
   summarise(
     median_value = sum(median_value),
     lower_ci = sum(lower_ci),
@@ -68,13 +68,13 @@ abundance_df_totals <- abundance_df %>%
   )
 
 # Rename "Group" to "Region" in the 'group' column
-abundance_df_totals <- abundance_df_totals %>%
-  mutate(group = str_replace(group, "Group", "Region"))
+# abundance_df_totals <- abundance_df_totals %>%
+#   mutate(group = str_replace(group, "Group", "Region"))
 
 # Add 'Total' category by summing across sex and age_class
 abundance_df_overall <- abundance_df %>%
-  mutate(group = str_replace(group, "Group", "Region")) %>% 
-  group_by(group, year) %>%
+#  mutate(group = str_replace(group, "Group", "Region")) %>% 
+  group_by(Region, year) %>%
   summarise(
     median_value = sum(median_value),
     lower_ci = sum(lower_ci),
@@ -89,11 +89,11 @@ abundance_df_overall <- abundance_df %>%
 # Filter data for 2020 and 2023 and reshape it
 abundance_df_filtered <- abundance_df_overall %>%
   filter(year %in% c(2, 4)) %>%
-  select(group, year, median_value)
+  select(Region, year, median_value)
 
 # Reshape and calculate relative change over time
 abundance_df_wide <- abundance_df_filtered %>%
-  group_by(group) %>% 
+  group_by(Region) %>% 
   pivot_wider(
     names_from = year,            
     values_from = median_value,   
@@ -111,7 +111,7 @@ abundance_df_wide <- abundance_df_filtered %>%
 
 # Merge abundance data with shapefile
 wmu_data <- wmu_shapefile %>%
-  left_join(abundance_df_wide, by = c("WMU_Group" = "group"))
+  left_join(abundance_df_wide, by = c("WMU_Group" = "Region"))
 
 # Filter out Region 10 for plotting
 wmu_data_filtered <- wmu_data %>%
@@ -123,27 +123,31 @@ wmu_10 <- wmu_shapefile %>%
 
 # Plot relative abundance change by WMU
 change_plot <- ggplot(wmu_data_filtered) +
-  geom_sf(aes(fill = abundance_change_relative), color = "white", size = 0.1) +  # Use relative change
+  geom_sf(aes(fill = abundance_change_relative), color = "white", size = 0.1) +
   scale_fill_gradientn(
     colors = c(
-      "#4C2E2F",  # Deeper red-brown for very strong decrease
-      "#6E4546",  # Dark red-brown for strong decrease
-      "#8C5A5B",  # Distinct red-brown for moderate decrease
-      "#B07B7E",  # Muted pinkish brown for slight decrease
-      "#F1E2CA",  # Soft beige for no change
+      "#4C2E2F",  # Very strong decrease
+      "#6E4546",  # Strong decrease
+      "#8C5A5B",  # Moderate decrease
+      "#B07B7E",  # Slight decrease
+      "#F1E2CA",  # No change (this should map to 0)
+      "#D4E6D0",  # Very light sage for minimal increase
+      "#B8D4B0",  # Light sage green for small increase
       "#88A295",  # Muted sage green for slight increase
-      "#597D7F",  # Teal-blue for moderate increase
-      "#2B5E60",  # Dark blue-teal for strong increase
-      "#183D3E"   # Deeper blue-teal for very strong increase
+      "#628287",  # Balanced blue-green for good increase
+      "#2B5E60",  # Dark blue-teal for exceptional increase
+      "#1F4158",  # Nearly navy blue-teal for extraordinary increase
+      "#183D3E"   # Deepest blue-teal for maximum increase
     ),
-   # values = scales::rescale(c(-max(abs(wmu_data_filtered$abundance_change_relative)), 0, max(abs(wmu_data_filtered$abundance_change_relative)))),
-    values = scales::rescale(c(-0.5, 0, 0.5)),   # Set the rescaling range to match -0.4 to 0.4
-    limits = c(-0.5, 0.5),                        # Set legend limits from -0.4 to 0.4
+    # Map the 5th color (beige) to the value 0 within your range
+    values = scales::rescale(c(-0.1, -0.075, -0.05, -0.025, 0, 0.1, 0.2, 0.4, 0.6, 0.8, 0.9, 1), 
+                             to = c(0, 1)),
+    limits = c(-0.1, 1),
     name = expression('ΔN'),
     guide = guide_colorbar(label = T)
   ) +
   geom_sf(data = wmu_10, fill = "white", color = "grey") +
-  theme_void() + # change t theme_bw if you want a box around
+  theme_void() +
   geom_sf_text(data = wmu_data_filtered, aes(label = WMU_Group)) +
   geom_sf_text(data = wmu_10, aes(label = WMU_Group)) +
   theme(legend.position = "right") +
@@ -151,11 +155,11 @@ change_plot <- ggplot(wmu_data_filtered) +
   ylab(NULL) +
   theme(text = element_blank(),
         axis.ticks = element_blank(),
-        panel.grid= element_blank())
+        panel.grid = element_blank())
 
 change_plot
 
-ggsave(file.path(paste0("../turkey_IPM/Manuscript/wmu_group_relative-change-10.png")), plot = change_plot,
+ggsave(file.path(paste0("Dataviz/wmu_group_relative-change-10.png")), plot = change_plot,
        device = "png", bg="transparent", dpi = 700, height = 5, width = 8)
 
 ggsave(file.path(paste0("Datavis/20241229-wmu_group_relative-change-10-21-23.png")), plot = change_plot,
@@ -175,7 +179,7 @@ wmu_data_filtered$shape <- ifelse(wmu_data_filtered$abundance_change > 0.1, 17, 
 
 # Summarize abundance data
 abundance_df_totals <- abundance_df %>%
-  group_by(group, year, sex) %>%
+  group_by(Region, year, sex) %>%
   filter(year == "4") %>% 
   summarise(
     density_value = sum(density_value),
@@ -187,8 +191,8 @@ abundance_df_totals <- abundance_df %>%
 
 # Add 'Total' category by summing across sex and age_class
 abundance_df_overall2 <- abundance_df %>%
-  mutate(group = str_replace(group, "Group", "Region")) %>% 
-  group_by(group, year) %>%
+  #mutate(group = str_replace(group, "Group", "Region")) %>% 
+  group_by(Region, year) %>%
   summarise(
     density_value = sum(density_value),
     lower_ci = sum(lower_ci),
@@ -202,7 +206,7 @@ abundance_df_overall2 <- abundance_df %>%
 
 # Merge abundance data with shapefile
 wmu_data2 <- wmu_shapefile %>%
-  left_join(abundance_df_overall2, by = c("WMU_Group" = "group"))
+  left_join(abundance_df_overall2, by = c("WMU_Group" = "Region"))
 
 # Filter out Group 10 for plotting
 wmu_data_filtered2 <- wmu_data2 %>%
@@ -227,7 +231,7 @@ den_plot <- ggplot(wmu_data_filtered2) +
     name = expression('Abundance/km'^2*''),
     guide = guide_colorbar(label = T),
   values = scales::rescale(c(0, 5)),   # Set the rescaling range to match -0.4 to 0.4
-   limits = c(0, 5)) +                       # Set legend limits from -0.4 to 0.4 
+   limits = c(0, 7)) +                       # Set legend limits from -0.4 to 0.4 
   geom_sf(data = wmu_10, fill = "white", color = "grey") +
   theme_void() +
   geom_sf_text(data = wmu_10, aes(label = WMU_Group)) +
@@ -236,7 +240,7 @@ den_plot <- ggplot(wmu_data_filtered2) +
 den_plot
 
 
-ggsave(file.path(paste0("../turkey_IPM/Manuscript/wmu_group_den-10.png")), plot = den_plot,
+ggsave(file.path(paste0("Dataviz/wmu_group_den-10.png")), plot = den_plot,
        device = "png", bg="transparent", dpi = 700, height = 6, width = 9)
 
 ggsave(file.path(paste0("Datavis/20241229-wmu_group_den-10.png")), plot = den_plot,
@@ -327,4 +331,4 @@ state <- ggplot(data = statewide_data, aes(
     legend.key = element_rect(fill = "white"),  # Customize legend key appearance
     legend.key.size = unit(1.5, "lines")      # Adjust size of legend keys (shapes)
   )
-ggsave("Manuscript/statewide_simple_comparison.png", plot = state, width = 15, height = 10, dpi = 700)
+ggsave("Manuscript/statewide_O-IPM_comparison.png", plot = state, width = 15, height = 10, dpi = 700)

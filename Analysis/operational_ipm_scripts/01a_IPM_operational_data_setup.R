@@ -17,9 +17,9 @@ library(coda)
 set.seed(1235)
 
 # Source required scripts
-source("Analysis/Scripts/00_IPM_funs.R")
-source("Analysis/Scripts/00_data-formating_IPM_simple.R")
-source("models/ipm_simple.R")
+source("Analysis/00_IPM_funs.R")
+load("Data/Operational_IPM_setup-data/Operational_IPM_Nimble_data_setup.RData")
+source("models/operational_ipm.R")
 
 ##################################################X
 # Estimate parameters in Nimble ----
@@ -165,4 +165,4 @@ inits <- list(
   female.N.ad = array(100000, dim = c(Nyears, 9)),
   female.N.juv = array(100000, dim = c(Nyears, 9))
 )
-save.image(file = "Data/Simple_IPM_setup-data/Simple_IPM_Nimble_data_setup.RData")
+save.image(file = "Data/Operational_IPM_setup-data/O_IPM_Nimble_data_setup.RData")

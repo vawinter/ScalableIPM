@@ -1,9 +1,9 @@
-################################################X
-#         Table formatting for manuscript      #X
-## ========================================= ###X
-# = Comparing model fit for full and simple    #X
-##  ============ model outputs ============== ##X
-################################################X
+#####################################################X
+#          Table formatting for manuscript          #X
+## ============================================== ###X
+# = Comparing model fit for R-IPM, O-IPM, and V_IPM #X
+##  =============== model outputs ================ ##X
+#####################################################X
 
 rm(list = ls())
 gc()
@@ -14,16 +14,16 @@ library(dplyr)
 library(kableExtra)
 
 # Load data 
-kf_survival_df <- readRDS("Data/Output/Operational_kf-survival_summary.rds")
-drm_harvest_df <- readRDS("Data/Output/Operational_harvest_summary.rds")
-abundance_df <- readRDS("Data/Output/Operational_abundance_summary.rds")
-drm_survival_df <- readRDS("Data/Output/Operational_drm_survival_summary.rds")
-ppb <- readRDS("Data/Output/Operational_ppb_summary.rds")
-hwb <- readRDS("Data/Output/Operational_hwb_summary.rds")
-rec <- readRDS("Data/Output/Operational_rec_summary.rds")
-combined_survival_df <- readRDS("Data/Output/Operational_comb-survival_summary.rds")
+kf_survival_df <- readRDS("Data/Output/O_kf-survival_summary.rds")
+drm_harvest_df <- readRDS("Data/Output/O_harvest_summary.rds")
+abundance_df <- readRDS("Data/Output/O_abundance_summary.rds")
+drm_survival_df <- readRDS("Data/Output/O_drm_survival_summary.rds")
+ppb <- readRDS("Data/Output/O_ppb_summary.rds")
+hwb <- readRDS("Data/Output/O_hwb_summary.rds")
+rec <- readRDS("Data/Output/O_rec_summary.rds")
+combined_survival_df <- readRDS("Data/Output/O_comb-survival_summary.rds")
 # Load in WMU areas
-wmu_areas <- readRDS("Data/wmu_km_areas_w.groups.rds")
+wmu_areas <- readRDS("Data/wmu_km_areas_regions.rds")
 
 # Format harvest data ----
 dat <- read.csv("../../PSUTurkey/turkey_IPM/Data/Banding_harv_data/FallSprHarvData_20240919.csv", header=T)
@@ -211,7 +211,7 @@ ppb2 <- ppb %>%
 # Generate the table
 table_ppb <- kable(ppb2,
                   booktabs = TRUE,   
-                  format = "latex", 
+                  format = "html", 
                   col.names = c("WMU Region", "Year","Median", "2.5% CI",  "97.5% CI"), 
                   caption = "Poult:Hen ratios with 95% credible intervals across WMU regions over four years.") %>%
   # Collapse rows for Sex/Age Class and WMU
@@ -220,6 +220,7 @@ table_ppb <- kable(ppb2,
 
 
 writeClipboard(table_ppb)
+save_kable(table_ppb, file = "Appendix3Table4.html")
 
 
 # hwb
@@ -264,7 +265,7 @@ rec2 <- rec %>%
          upper_ci  = upper_ci/area_sq_km) %>%
   select(-c(wmu, year, median_value, mean_value)) %>%
   relocate(Year, .before = density_value) %>% 
-  relocate(group, .before = lower_ci ) %>% 
+  relocate(Region, .before = lower_ci ) %>% 
   relocate(Year, .before = lower_ci) %>% 
   relocate(density_value, .before = lower_ci) %>% 
   relocate(area_sq_km, .before= Year) %>% 
@@ -278,8 +279,8 @@ rec2 <- rec %>%
 # Generate the table
 table_rec <- kable(rec2,
                    booktabs = TRUE,   
-                   format = "latex", 
-                   col.names = c("WMU Group", "Area $km^{2}$", "Year","Density", "2.5% CI",  "97.5% CI"), 
+                   format = "html", 
+                   col.names = c("Region", "Area $km^{2}$", "Year","Density", "2.5% CI",  "97.5% CI"), 
                    caption = "Recruitment density with 95% credible intervals across WMU groups over four years.") %>%
   # Collapse rows for Sex/Age Class and WMU
   collapse_rows(columns = c(1, 2), latex_hline = "major", valign = "middle") %>%

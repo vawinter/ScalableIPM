@@ -1,6 +1,6 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #################### Integrated Population Model (IPM): #######################X
-#                 #---# PhD Dissertation: Simple IPM #---#
+#                 #---# PhD Dissertation: O IPM #---#
 #        Creating a Bayesian IPM to inform turkey management in PA
 ###                       *** Real data run ***                             ###X
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #X
@@ -22,11 +22,11 @@ library(patchwork)
 
 
 # Load data 
-abundance_df <- readRDS("Data/Output/Research_abundance_summary.rds")
-rec <- readRDS("Data/Output/Research_rec_summary.rds")
+abundance_df <- readRDS("Data/Output/O_abundance_summary.rds")
+rec <- readRDS("Data/Output/O_rec_summary.rds")
 
-abundance_df$group <- abundance_df$wmu
-rec$group <- rec$wmu
+abundance_df$group <- abundance_df$Region
+rec$group <- rec$Region
 
 # Data structuring
 # Summarize data for total males, total females, and overall totals
@@ -168,5 +168,5 @@ summary(lm(combined_df$rec_density_prev ~ combined_df$abundance_density))$r.squa
 #----X
 
 # Save plot
-ggsave("Dataviz/rec_abun_cor_full.png", plot = corr.plot_r2, width = 10, height = 8, dpi = 700)
+ggsave("Dataviz/rec_abun_cor.png", plot = corr.plot_r2, width = 10, height = 8, dpi = 700)
 

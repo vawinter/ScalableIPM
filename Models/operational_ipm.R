@@ -1,4 +1,4 @@
-ipm_simple <- nimbleCode({
+o_ipm <- nimbleCode({
   ###########################################################X
   # Simple IPM for modeling statewide WMU group dynamics for PA ----
   ###########################################################X
@@ -137,17 +137,15 @@ ipm_simple <- nimbleCode({
   ###########################################################X
   # Female survival  ----
   ###########################################################X
-  # Estimate a survival rate for females based off full IPM 
+  # Estimate a survival rate for females based off R IPM 
   # known-fate model 
   for (t in 1:Nyears) {
   for (u in 1:female.n.wmu) {
-    avg.juv.s.kf[t, u] ~ dbeta(shape1 = 4, shape2 = 20)
+    avg.juv.s.kf[t, u] ~ dbeta(shape1 = 5, shape2 = 5)
     avg.ad.s.kf[t, u] ~ dbeta(shape1 = 10, shape2 = 5)
-
-}
-   # avg.juv.s.kf[u] ~ dunif(0, 1)
-   # avg.ad.s.kf[u] ~ dunif(0, 1)
+    }
   }
+  
 
   ###########################################################X
   #----------------------------------------------------------#
@@ -163,15 +161,22 @@ ipm_simple <- nimbleCode({
   #----------------------------------------------------------# 
   for (t in 1:(female.n.occasions-1)) {
     for (u in 1:female.n.wmu) {
-      # For a vague prior
-      # female.h.ad.wmu[t,u] ~ dbeta(1, 1)
-      # female.h.juv.wmu[t,u] ~ dbeta(1, 1)
- 
       # Use a Beta prior on harvest rate
       female.h.ad.wmu[t,u] ~ dbeta(shape1 = 2, shape2 = 50)
       female.h.juv.wmu[t,u] ~ dbeta(shape1 = 2, shape2 = 50)
     }#g
   }#t
+  
+  ###########################################################X
+  # Juvenile Male survival [from Nov. to May] ----
+  ###########################################################X
+  # Estimate a survival rate for males based off R IPM 
+  # known-fate model 
+  for (t in 1:Nyears) {
+    for (u in 1:male.n.wmu) {
+      juv.male.adj[t,u] ~ dbeta(shape1 = 7, shape2 = 3)
+    }
+  }
 
   ###########################################################X
   # DRM: Male model ----
@@ -335,6 +340,9 @@ ipm_simple <- nimbleCode({
     # Initial abundance for juvenile males in each WMU using 2020 hr
     N.lambda.juv.male[u] <- (th.year1.male.juv[u]) / male.h.juv.wmu[1, u]
     male.N.juv[1, u] ~ dpois(N.lambda.juv.male[u])
+    
+    # adjust recruitment for males 
+    male.recruitment[1, u] <- recruitment[1, u] * juv.male.adj[1,u]
   } # end u
 
   # Loop over time occasions (2021-2023)
@@ -354,13 +362,17 @@ ipm_simple <- nimbleCode({
       male.N.ad[t, u]  <- (male.N.ad.Survived[t, u] + male.N.juv.Survived[t, u])
 
       # New juveniles who entered the population
-      # For males, these juveniles are from Nov (t-1) entering in May (t)
-      male.N.juv[t, u] ~ dpois(recruitment[t-1, u])
-
+      #----------------------------------------------------------#
+      # Note: For males, these juveniles are from Nov (t-1) entering in May (t)
+      #----------------------------------------------------------#
+      # adjust recruitment for males 
+      male.recruitment[t, u] <- recruitment[t, u] * juv.male.adj[t,u]
+      male.N.juv[t, u] ~ dpois(male.recruitment[t-1, u])
+      
       # Lincoln-Petersen: Adult males in spring
       harvest.ad.spring[t, u] ~ dbin(prob = male.h.ad.wmu[t, u],
                                      size = male.N.ad[t, u])
-
+      
       # Lincoln-Petersen: Juvenile males in spring
       harvest.juv.spring[t, u] ~ dbin(prob = male.h.juv.wmu[t, u],
                                       size = male.N.juv[t, u])

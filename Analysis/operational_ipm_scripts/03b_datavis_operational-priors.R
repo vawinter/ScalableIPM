@@ -23,17 +23,17 @@ library(patchwork)
 
 
 # Load data 
-kf_survival_df <- readRDS("Data/Output/Operational_vague_kf-survival_summary.rds")
-drm_harvest_df <- readRDS("Data/Output/Operational_vague_harvest_summary.rds")
-abundance_df <- readRDS("Data/Output/Operational_vague_abundance_summary.rds")
-drm_survival_df <- readRDS("Data/Output/Operational_vague_drm_survival_summary.rds")
-combined_survival_df <- readRDS("Data/Output/Operational_vague_comb-survival_summary.rds")
-ppb <- readRDS("Data/Output/Operational_vague_ppb_summary.rds")
-hwb <- readRDS("Data/Output/Operational_vague_hwb_summary.rds")
-rec <- readRDS("Data/Output/Operational_vague_rec_summary.rds")
+kf_survival_df <- readRDS("Data/Output/V_kf-survival_summary.rds")
+drm_harvest_df <- readRDS("Data/Output/V_harvest_summary.rds")
+abundance_df <- readRDS("Data/Output/V_abundance_summary.rds")
+drm_survival_df <- readRDS("Data/Output/V_drm_survival_summary.rds")
+combined_survival_df <- readRDS("Data/Output/V_comb-survival_summary.rds")
+ppb <- readRDS("Data/Output/V_ppb_summary.rds")
+hwb <- readRDS("Data/Output/V_hwb_summary.rds")
+rec <- readRDS("Data/Output/V_rec_summary.rds")
 
 # Load in WMU areas
-wmu_areas <- readRDS("Data/wmu_km_areas_w.groups.rds")
+wmu_areas <- readRDS("Data/wmu_km_areas_regions.rds")
 
 # Format harvest data ----
 dat <- read.csv("Data/Banding_harv_data/FallSprHarvData_20240919.csv", header=T)
@@ -298,7 +298,7 @@ combined_plot <- harvest_plot / survival_plot
 print(combined_plot)
 
 #### Save harvest/drm surv ----
-ggsave("Manuscript/Simple_IPM-prior_plot.png", plot = combined_plot,  width = 15, height = 12, dpi = 700)
+ggsave("Dataviz/V_IPM_plot.png", plot = combined_plot,  width = 15, height = 12, dpi = 700)
 
 # Abundance Plot ----
 abundance_plot <- ggplot(abundance_df_overall, aes(y = median_value / area_sq_km, x = year, shape = sex, color = sex)) +
@@ -338,7 +338,7 @@ abundance_plot <- ggplot(abundance_df_overall, aes(y = median_value / area_sq_km
 
 
 #### Save abundance ----
-ggsave("Manuscript/Simple_abun_prior-plot.png", plot = abundance_plot,   width = 16, height = 9, dpi = 700)
+ggsave("Dataviz/V_abun_plot.png", plot = abundance_plot,   width = 16, height = 9, dpi = 700)
 
 ## Harvest density ----
 harvest_den_plot <- ggplot(harvest_df_overall, aes(y = median_value/area_sq_km, x = year, shape = sex, color = sex))  +
@@ -520,7 +520,7 @@ recruitment_plot <- ggplot(rec, aes(y = density_value, x = year, color = as.fact
 
 
 #### Save the fem surv and rec ----
-ggsave("Manuscript/Simple_kf_survival_plot.png", plot = kf_survival_plot,  width = 10, height = 6, dpi = 700)
-ggsave("Manuscript/Simple_rec_plot.png", plot = recruitment_plot, width = 10, height = 8, dpi = 700)
+ggsave("Manuscript/V_kf_survival_plot.png", plot = kf_survival_plot,  width = 10, height = 6, dpi = 700)
+ggsave("Manuscript/V_rec_plot.png", plot = recruitment_plot, width = 10, height = 8, dpi = 700)
 
 

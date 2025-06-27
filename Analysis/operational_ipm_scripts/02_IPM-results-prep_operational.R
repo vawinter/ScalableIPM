@@ -1,11 +1,12 @@
 ###############################################################################X
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #################### Integrated Population Model (IPM): #######################X
-#                 #---# PhD Dissertation: Simple IPM #---#
+#                 #---# PhD Dissertation: O IPM #---#
 #        Creating a Bayesian IPM to inform turkey management in PA
 ###                     *** Output organization ***                         ###X
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #X
 ###############################################################################X
+# Note: this script is used for formatting the O and V IPM.
 # clean env
 rm(list = ls())
 gc()
@@ -19,10 +20,6 @@ library(tidyr)
 library(coda)
 library(stringr)
 library(purrr)
-
-# # for saving outputs
-# date <- "20241218"
-# type <- "Simple_"
 
 # source functions
 source("Analysis/00_output-processing_funs.R")
@@ -51,7 +48,7 @@ wmu_areas <- readRDS("Data/wmu_km_areas_regions.rds")
 # "female.N.ad", "female.N.juv"
 
 ###-----------------------------------------------------#X
-load("Data/Simple_IPM_run.Rdata")
+load("Data/Output/O_IPM_run.Rdata")
 ###-----------------------------------------------------#X
 ## Vague prior on female survival ----X
 # A Note on Vague priors model:
@@ -59,10 +56,10 @@ load("Data/Simple_IPM_run.Rdata")
 # harvest rates and survival probability are constructed with a vague prior of
 # Beta(1,1) as opposed to an informative prior
 #
-# load("Data/Outputs/Simple_IPM_run-vagueprior.Rdata")
+# load("Data/Outputs/Vague_IPM_run.Rdata")
 ###-----------------------------------------------------#X
 # `samples` is an MCMC array with dimensions [WMU, Year]
-samples_df <- as.data.frame(ipm_run$chain1)
+samples_df <- as.data.frame(combined_results[[1]])
 
 # Process each category using the function ----
 # KF survival for..
@@ -253,8 +250,7 @@ if (!dir.exists(folder_path)) {
   message("Folder already exists: ", folder_path)
 }
 
-#type <- "Operational_vague_"
-type <- "Operational"
+type <- "O"
 saveRDS(kf_survival_df, paste0("Data/Output/",  type, "_kf-survival_summary.rds"))
 saveRDS(combined_survival_df, paste0("Data/Output/", type, "_comb-survival_summary.rds"))
 saveRDS(drm_harvest_df, paste0("Data/Output/",  type,  "_harvest_summary.rds"))

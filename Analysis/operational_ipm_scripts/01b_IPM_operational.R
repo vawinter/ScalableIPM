@@ -1,8 +1,11 @@
 ###############################################################################X
-# Parallelized Simple Integrated Population Model (IPM) Script
+# Parallelized O Integrated Population Model (IPM) Script
 # Modified for parallel processing
 # https://r-nimble.org/nimbleExamples/parallelizing_NIMBLE.html
 ###############################################################################X
+# Note: this script is used for fitting either the O and V IPM. The only change is 
+# the model script that is loaded in. Otherwise, data inputs are the same,
+# the only change are the model priors.
 
 # Clean environment
 rm(list = ls())
@@ -20,8 +23,8 @@ library(coda)
 set.seed(1235)
 
 ### Nimble model set up ----
-load("Data/Operational_IPM_setup-data/Operational_IPM_Nimble_data_setup.RData")
-
+load("Data/Operational_IPM_setup-data/O_IPM_Nimble_data_setup.RData")
+source("Models/operational_ipm.R")
 ##################################################################X
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #              ######### THINGS TO NOTE: #########
@@ -52,7 +55,7 @@ cl <- makeCluster(num_cores)
 registerDoParallel(cl)
 
 # Export necessary objects to cluster
-clusterExport(cl, c("nimble.data", "consts", "inits", "ipm"))
+clusterExport(cl, c("nimble.data", "consts", "inits", "o_ipm"))
 
 # Parallel function to run MCMC
 run_parallel_mcmc <- function(seed_offset) {
@@ -63,7 +66,7 @@ run_parallel_mcmc <- function(seed_offset) {
   
   # Create the Nimble model
   model <- nimbleModel(
-    code = ipm,
+    code = o_ipm,
     data = nimble.data,
     constants = consts,
     inits = inits
@@ -84,7 +87,8 @@ run_parallel_mcmc <- function(seed_offset) {
       "female.h.ad.wmu", "female.h.juv.wmu",  
       "male.N.ad", "male.N.juv",
       "female.N.ad", "female.N.juv",  
-      "avg.ad.s.kf", "avg.juv.s.kf"
+      "avg.ad.s.kf", "avg.juv.s.kf",
+      "juv.male.adj"
     ),
     niter = ni, 
     nburnin = nb, 
@@ -139,8 +143,8 @@ combined_results <- as.mcmc.list(combined_results)
 stopCluster(cl)
 ##------------------##X
 # Save output
-saveRDS(combined_results, paste0("Data/Output/", format(Sys.Date(), "%Y%m%d"), "_Parallel_Simple_IPM_run.rds"))
-save.image(file = "Data/Output/Simple_IPM_run.Rdata")
+saveRDS(combined_results, paste0("Data/Output/", format(Sys.Date(), "%Y%m%d"), "_O_IPM_run.rds"))
+save.image(file = "Data/Output/O_IPM_run.Rdata")
 
 #############################################################X
 # Model diagnostics -----
@@ -149,13 +153,12 @@ save.image(file = "Data/Output/Simple_IPM_run.Rdata")
 library(MCMCvis)
 
 # Summarize results
-lapply(combined_results, function(result) {
-  MCMCsummary(result, params = c(
+MCMCsummary(combined_results, params = c(
     "avg.ad.s.kf", "avg.juv.s.kf",
     "male.h.ad.wmu", "female.h.juv.wmu",
     "female.N.ad", "female.N.juv"
-  ))
-})
+))
+
 
 # Trace plots (adjust as needed for parallel processing)
 MCMCvis::MCMCtrace(combined_results[[1]], pdf = FALSE, 
