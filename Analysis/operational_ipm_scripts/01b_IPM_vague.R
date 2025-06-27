@@ -24,7 +24,7 @@ set.seed(1235)
 
 ### Nimble model set up ----
 load("Data/Operational_IPM_setup-data/V_IPM_Nimble_data_setup.RData")
-source("Models/V_ipm.R")
+source("Models/vague_ipm.R")
 
 ##################################################################X
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #

@@ -21,7 +21,8 @@ library(coda)
 
 # Import required scripts
 source("Analysis/00_IPM_funs.R")
-load("Data/Research_IPM_setup-data/complex_IPM_Nimble_data_setup.RData")
+load("Data/Research_IPM_setup-data/Research_IPM_Nimble_data_setup.RData")
+is.juv <- readRDS("Data/Research_IPM_setup-data/telem.juv.corrected.rds")
 source("Models/research_ipm.R")
 
 ##################################################X
@@ -36,8 +37,8 @@ Nyears = male.n.occasions-1
 nimble.data <- list(
   # KF telemetered data 
   status = status_matrix,
-  telem.juvenile = is_juvenile_matrix, # adult is intercept
-  telem.wmu = telem.wmu, # 2D is intercept term
+  telem.juvenile = is.juv, 
+  telem.wmu = telem.wmu, 
   
   ###-----------#X
   # Recruitment (HWB)
@@ -86,7 +87,7 @@ nimble.data <- list(
 # Constants
 consts <- list(
   # KF telemetered constants 
-  telem.nind = telem.nind,# 405
+  telem.nind = telem.nind,
   telem.first = telem.first,
   telem.last = telem.last,
   telem.year.start = telem.year.start,
@@ -110,9 +111,9 @@ consts <- list(
   male.f = male.f,
   male.I = male.I, # c(6866, 1094) 0, 1=juvenile
   male.II = male.II, # c(714, 1276) 0, 1=non-reward band
-  male.nind = male.nind, # 1990
+  male.nind = male.nind, 
   male.n.occasions = male.n.occasions, # 5
-  male.n.wmu = male.n.wmu, #10
+  male.n.wmu = male.n.wmu, 
   male.wmu = as.numeric(as.factor(male.wmu)),
   
   ###-----------#X
@@ -191,4 +192,4 @@ inits <- list(
   female.N.ad = array(70000, dim = c(Nyears, female.n.wmu)),
   female.N.juv = array(70000, dim = c(Nyears, female.n.wmu))
 )
-save.image(file = "Data/Complex_IPM_Nimble_data_setup.RData")
+save.image(file = "Data/Research_IPM_setup-data/R_IPM_Nimble_data_setup.RData")

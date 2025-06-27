@@ -14,15 +14,15 @@ survival <- nimbleCode({
   ###########################################################X
   # WMU random effect  ----
   ###########################################################X
-  telem.sigma ~ dunif(0, 10)
-  for (w in 1:4) {
+  telem.sigma ~ dunif(0, 5)
+  for (w in 1:female.telem.wmu) {
     telem.beta.wmu[w] ~ dnorm(0, sd = telem.sigma)
   }
   
   ###########################################################X
   # Month random effect  ----
   ###########################################################X
-  telem.month.sigma ~ dunif(0, 10)
+  telem.month.sigma ~ dunif(0, 5)
   for (m in 1:12) {
     telem.beta.month[m] ~ dnorm(0, sd = telem.month.sigma)
   }
@@ -42,23 +42,23 @@ survival <- nimbleCode({
         # Note:
         # Derived survival rate on the complementary log-log (cloglog) scale
         # s.kf[i, y, m]: Survival for individual i in year y and month m
-        # telem.beta.int[1]: Intercept term: adult in WMU 4D
+        # telem.beta.int[1]: Intercept term: adults
         # telem.beta.age[1]: Effect of age (juvenile) on survival
         # telem.juvenile[i, y, m]: Indicator for juvenile status (1 if juvenile, 0 if adult)
-        # inprod(telem.beta.wmu[1:3], telem.wmu[i, 1:3]): Captures spatial random effect for WMU
+        # inprod(telem.beta.wmu[1:4], telem.wmu[i, 1:4]): Captures spatial random effect for WMU
         # telem.beta.month[m]: Monthly survival effect to capture seasonal variation
         # step(m - telem.first[i]): holds the first month at the intercept
         #-------------------------------------------------------------------------X
         
-       s.kf[i, y, m] <-  telem.beta.int[1] +   # Adult, first month in study
+        s.kf[i, y, m] <-  telem.beta.int[1] +   # Adult
           telem.beta.age[1] * telem.juvenile[i, y, m] +  # Juvenile-specific effect
-          inprod(telem.beta.wmu[1:4], telem.wmu[i, 1:4]) +  # WMU random effect
-          telem.beta.month[m]   # Month effects only beyond the first month
+          inprod(telem.beta.wmu[1:female.telem.wmu], telem.wmu[i, 1:female.telem.wmu]) +  # WMU random effect
+          telem.beta.month[m]   # Month random effect
         
         #-------------------------------------------------------------------------X
         # Likelihood for survival status (0 = dead, 1 = alive) using a Bernoulli distribution
         # The probability is the inverse complementary log-log of the survival 
-        # cloglog() is appropriate when values are skewed low (towards 0) or high (towards 1)
+        # icloglog() is appropriate when values are skewed low (towards 0) or high (towards 1)
         #-------------------------------------------------------------------------X
         
         status[i, y, m] ~ dbern(prob = icloglog(s.kf[i, y, m]))
@@ -73,30 +73,26 @@ survival <- nimbleCode({
   # Initialize storage for monthly survival rates (Adult and Juvenile)
   for (m in 1:12) {
     # Adults, baseline WMU
-    storage[1, 1, m] <- icloglog(telem.beta.int[1] + telem.beta.wmu[1] +  telem.beta.month[m]) #* step(m - 1))  
+    storage[1, 1, m] <- icloglog(telem.beta.int[1] + telem.beta.wmu[1] +  telem.beta.month[m])   
     # Juveniles, baseline WMU
-    storage[1, 2, m] <- icloglog(telem.beta.int[1] + telem.beta.age[1] + telem.beta.wmu[1] +  telem.beta.month[m]) # * step(m - 1)) 
+    storage[1, 2, m] <- icloglog(telem.beta.int[1] + telem.beta.age[1] + telem.beta.wmu[1] +  telem.beta.month[m]) 
   }
   
   # For WMUs beyond the first
-  for (j in 1:(female.telem.wmu - 1)) {
+  for (j in 2:(female.telem.wmu)) {
     for (m in 1:12) {
       # Adults
-      storage[j + 1, 1, m] <- icloglog(telem.beta.int[1] + telem.beta.wmu[j] + telem.beta.month[m])
+      storage[j, 1, m] <- icloglog(telem.beta.int[1] + telem.beta.wmu[j] + telem.beta.month[m])
       # Juveniles
-      storage[j + 1, 2, m] <- icloglog(telem.beta.int[1] + telem.beta.age[1] + telem.beta.wmu[j] + telem.beta.month[m])
+      storage[j, 2, m] <- icloglog(telem.beta.int[1] + telem.beta.age[1] + telem.beta.wmu[j] + telem.beta.month[m])
     }
   }
   #---------------------------------------------------------------X
   # Calculate survival for Adults, accounting for nesting season 
   #---------------------------------------------------------------X
   for (j in 1:female.telem.wmu) {
-    # November and December survival using Jan as a proxy
-    ad_part1[j] <- storage[j, 1, 1] * storage[j, 1, 1] 
-    # Jan to Novemer
-    ad_part2[j] <- prod(storage[j, 1, 1:10])
-    # Jan to December
-    avg.ad.s.kf[j] <- (ad_part1[j])* ad_part2[j] 
+    # Jan to December survival
+    avg.ad.s.kf[j] <- prod(storage[j, 1, 1:12])  
   }
   #---------------------------------------------------------------X
   # Calculate survival for Juveniles transitioning to Adults in June
@@ -106,11 +102,24 @@ survival <- nimbleCode({
     juvenile_part1[j] <- storage[j, 2, 1] * storage[j, 2, 1]     
     # January to May
     juvenile_part2[j] <- prod(storage[j, 2, 1:5])   
-    # June to November
-    adult_part[j] <- prod(storage[j, 1, 6:12])     
+    # June to December (aging up to adult)
+    adult_part[j] <- prod(storage[j, 1, 6:10])     # changed from 6:12.
     
     # Cumulative survival for each entry month
-    avg.juv.s.kf[j] <- (juvenile_part1[j]*juvenile_part2[j])* adult_part[j] 
+    avg.juv.s.kf[j] <- (juvenile_part1[j] * juvenile_part2[j])* adult_part[j] 
+  }
+  
+  #---------------------------------------------------------------X
+  # Calculate survival for Juvenile MALES surviving until Spring harvest 
+  #---------------------------------------------------------------X
+  for (j in 1:male.n.wmu) { #exclude 5C
+    # November and December survival using Jan as a proxy
+    juvenile_male_1[j] <- storage[j, 2, 1] * storage[j, 2, 1]     
+    # January to April
+    juvenile_male_2[j] <- prod(storage[j, 2, 1:4])   
+    
+    # Cumulative survival until Spring harvest 
+    juv.male.adj[j] <- (juvenile_male_1[j] * juvenile_male_2[j])
   }
   
 
