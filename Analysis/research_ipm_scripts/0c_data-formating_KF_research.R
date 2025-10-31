@@ -1,15 +1,21 @@
 ###############################################################################X
-# Data formatting Known fate ----
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+############## Research Integrated Population Model (R_IPM): ##################X
+#                     #---# PhD Dissertation: R_IPM #---#
+#        Creating a Bayesian IPM to inform turkey management in PA
+###                                                                         ###X
+#               Data formatting for female known-fate model (KF)
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #X
 ###############################################################################X
+
 rm(list = ls())
 gc()
 
 # Source scripts of functions and data preparation
 source("Analysis/00_IPM_funs.R")
-
-# # location of Turkey database
+##-----------------------------------------------------#X
+# location of Turkey database
 access.dir <- "C:/Users/vaw5154/OneDrive - The Pennsylvania State University/PhD/PSUTurkey/PA Turkey Database/"
-# 
 # # Read in tables from Access database
 db <- file.path(paste0(access.dir,"TurkeyDB_10_10_2025.accdb"))
 ch <- odbcConnectAccess2007(db) # open channel to database
@@ -18,52 +24,123 @@ dcen <- sqlFetch(ch,"censors", as.is = T)
 dmor <- sqlFetch(ch,"mortalities", as.is = T)
 dtag <- sqlFetch(ch,"transmitter_status", as.is = T)
 close(ch) #close channel to database
-
-# # Version for original MS
-# # # location of Turkey database
-#  access.dir <- "../../../TurkeyDatabase/"
-# #
-# # Read in tables from Access database
-# db <- file.path(paste0(access.dir,"TurkeyDB.accdb"))
-
+##-----------------------------------------------------#X
+# DF structuring ----
+##-----------------------------------------------------#X
 # Grab necessary columns from dfs
-capt <- dcap[,c(1:4,6:8,13:16,34)]
-cens <- dcen[,c(1:4)]
-mor <- dmor[,c(1,12:14, 21, 22)]
+capt <- dcap[,c("bandid","captyr", "captmo", "captday", "studyarea",
+                "lat","long","age","sex","weight","birdcondition", "recapture")]
+cens <- dcen[,c("bandid","cenyr","cenmo","cenday")]
+mor <- dmor[,c("bandid","estmortyr","estmortmo","estmortday","fate_m","subfate1_m")]
 
 # Merge df's
 d1 <- merge(capt, cens, by="bandid", all.x=TRUE, all.y=FALSE)
 df <- merge(d1, mor, by="bandid", all.x=TRUE, all.y=FALSE)  
 
 # Filter out rows where capyr is not 2024
-#df <- df[df$captyr != 2024, ]
+df <- df[df$captyr != 2024, ]
 df <- df[df$captyr != 2025, ]
-#df <- df[df$studyarea != "2D", ]
 
 # Filter for rows where sex is "F"
 df <- df[df$sex == "F", ]
 table(df$captyr)
 
-# Create encounter histories w. function
-status <- encounter_histories(df, filter_sex = "F")
-dat <- hen_histories(df, filter_sex = "F")
+# Define year we are evaluating until
+stop_year <- 2024
+##-----------------------------------------------------#X
+# Create encounter histories ----
+##-----------------------------------------------------#X
+# w. function
+status <- encounter_histories(df, filter_sex = "F", stop_year = 2024)
+status_matrix <- status # created
 
-## Format the data and initial values 
-unique_bands <- unique(dat$hen$bandid)
-telem.nind <- length(unique_bands)
+##-----------------------------------------------------#X
+# Create age variables, month of entry, etc ----
+##-----------------------------------------------------#X
+# Hen information (duration in study, location, age indicator)
+# Filter and prep data
+hen <- df %>%
+  mutate(
+    begin = as.Date(paste0(captyr, "-", captmo, "-", captday)),
+    censor = as.Date(paste0(cenyr, "-", cenmo, "-", cenday), format = "%Y-%m-%d"),
+    mort = as.Date(paste0(estmortyr, "-", estmortmo, "-", estmortday), format = "%Y-%m-%d"),
+    fate = case_when(
+      !is.na(mort) ~ "Dead",
+      !is.na(censor) ~ "Censor",
+      year(censor) > as.Date(paste0(stop_year, "-12-31")) ~ "Alive",
+      year(mort) > as.Date(paste0(stop_year, "-12-31")) ~ "Alive",
+      TRUE ~ "Alive"
+    ),
+    end = case_when(
+      fate == "Alive" ~ as.Date(paste0(stop_year, "-12-31")),
+      fate == "Censor" ~ censor,
+      fate == "Dead" ~ mort
+    )
+  ) 
 
-## Format length of months vector
-nMonths = max(dat$hen$last)
+# Study period
+start_year <- year(min(hen$begin))
+end_year <- stop_year
+telem.nyears <- end_year - start_year + 1
 
-# Initialize matrices
-status_matrix <- status
-# is_adult_matrix <- matrix(dat$is.adult, nrow = nind, ncol = nMonths)
-is_juvenile_matrix <- dat$is_juvenile_matrix
+# Calculate month indices
+hen_mo <- hen %>%
+  mutate(
+    start = month(begin) + 12 * (year(begin) - start_year),
+    stop = month(end) + 12 * (year(end) - start_year),
+    year_start = year(begin) - start_year + 1
+  )
 
-telem.first <- dat$hen$first
-telem.last <- dat$hen$last
-telem.wmu = model.matrix(~ -1 + is.2d + is.3d + is.4d + is.5c, data = dat$hen)
+# Initialize arrays
+telem.nind <- nrow(hen_mo)
+is_juvenile_matrix <- array(0, dim = c(telem.nind, telem.nyears, 12))
 
+# Fill arrays:
+# Loop over each individual, study year, month (Jan=1, Dec=12)
+for (i in 1:telem.nind) {
+  for (y in 1:telem.nyears) {
+    for (m in 1:12) {
+      # Calculate absolute month index since study start
+      month_index <- (y - 1) * 12 + m
+      # Check if individual was being monitored during this month
+      if (month_index >= hen_mo$start[i] && month_index <= hen_mo$stop[i]) {
+        # Mark as juvenile if: captured as juvenile AND currently in capture year AND Jan-May
+        is_juvenile_matrix[i, y, m] <- (hen_mo$age[i] == "J" && 
+                                          y == hen_mo$year_start[i] && 
+                                          m <= 5)
+      }
+    } # end m
+  } # end y
+} # end i
+
+# WMU indicator
+telem.wmu = model.matrix(~ -1 + studyarea, data = df)
+
+# When individual entered/left study (month)
+hen_timing <- hen_mo %>%
+  group_by(bandid) %>%
+  mutate(
+    year_start = year(begin) - start_year + 1,
+    year_end = case_when(
+      year(end) < stop_year ~ year(end) - start_year + 1,
+      TRUE ~ stop_year - start_year + 1  # Default case
+    ),
+    first = month(begin),
+    last = month(end),
+    start = first + 12 * (year_start - 1),
+    stop = last + 12 * (year_end - 1)
+  ) %>%
+  ungroup()
+
+# Define variables for saving
+telem.first <- hen_timing$first
+telem.last <- hen_timing$last
+telem.year.start = hen_timing$year_start
+telem.year.end = hen_timing$year_end
+
+##-----------------------------------------------------#X
+# Save data ----
+##-----------------------------------------------------#X
 # Create a list to store the variables
 kf_data <- list(
   status_matrix = status_matrix,
@@ -73,16 +150,12 @@ kf_data <- list(
   telem.wmu = telem.wmu,
   telem.nind = telem.nind,
   telem.wmu = telem.wmu,
-  telem.month = dat$telem_month,
-  telem.year.start = dat$hen$year_start,
-  telem.year.end = dat$hen$year_end
+  telem.year.start = telem.year.start,
+  telem.year.end = telem.year.end
 )
 
-# identical(telem.first, telem.first)
-# identical(status_matrix, status_matrix)
-
 # Define a directory where you want to save the RDS files
-output_dir <- "Data/Research_IPM_setup-data/"
+output_dir <- "Data/Research_IPM_setup-data/KF_data_new23/"
 
 # Loop through the list and save each variable as a separate RDS file
 for (var_name in names(kf_data)) {
@@ -90,3 +163,4 @@ for (var_name in names(kf_data)) {
   file_name <- paste(output_dir, var_name, ".rds", sep = "")
   saveRDS(variable, file_name)
 }
+# Done!
