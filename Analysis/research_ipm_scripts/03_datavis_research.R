@@ -20,24 +20,25 @@ library(knitr)
 library(ggridges)
 library(reshape2)
 library(patchwork)
-selected_dir <- "Datavis/"
+selected_dir <- "Datavis/TEST/"
 
+type = "TEST/R_23NoAbun23kf"
 # Load data 
-kf_survival_df <- readRDS("Data/Output/R__kf-survival_summary.rds")
-drm_harvest_df <- readRDS("Data/Output/R__harvest_summary.rds")
-abundance_df <- readRDS("Data/Output/R__abundance_summary.rds")
-drm_survival_df <- readRDS("Data/Output/R__drm_survival_summary.rds")
-combined_survival_df <- readRDS("Data/Output/R__comb-survival_summary.rds")
-ppb <- readRDS("Data/Output/R__ppb_summary.rds")
-hwb <- readRDS("Data/Output/R__hwb_summary.rds")
-rec <- readRDS("Data/Output/R__rec_summary.rds")
+kf_survival_df <- readRDS(paste0("Data/Output/", type, "_kf-survival_summary.rds"))
+drm_harvest_df <- readRDS(paste0("Data/Output/", type, "_kf-survival_summary.rds"))
+abundance_df <- readRDS(paste0("Data/Output/", type, "_kf-survival_summary.rds"))
+drm_survival_df <- readRDS(paste0("Data/Output/", type, "_kf-survival_summary.rds"))
+combined_survival_df <- readRDS(paste0("Data/Output/", type, "_kf-survival_summary.rds"))
+ppb <- readRDS(paste0("Data/Output/", type, "_kf-survival_summary.rds"))
+hwb <- readRDS(paste0("Data/Output/", type, "_kf-survival_summary.rds"))
+rec <- readRDS(paste0("Data/Output/", type, "_kf-survival_summary.rds"))
 
 # Harvest
 # Load in WMU areas
 wmu_areas <- readRDS("Data/wmu_areas_km.rds")
 
 # Format harvest data
-dat <- read.csv("Data/Banding_harv_data/FallSprHarvData_20240919.csv", header=T)
+dat <- read.csv("Data/FallSprHarvData.csv", header=T)
 colnames(dat)
 # If needed....
 # dat$WMU.Group <- dat$ï..WMU.Group
@@ -159,6 +160,7 @@ ext_colors <- c(
 
 # Filter too remove 5C survival estimate
 combined_survival_df <- combined_survival_df %>% filter(wmu != "5C")
+drm_harvest_df <- drm_harvest_df %>% filter(wmu != "5C")
 
 # Structure abundance df
 # Summarize data for total males, total females, and overall totals
@@ -222,12 +224,11 @@ harvest_plot <- ggplot(drm_harvest_df, aes(y = median_value, x = year,
     axis.text = element_text(size = 18),      # Increase axis text (ticks) size
     strip.text = element_text(size = 18),     # Increase facet label text size
     legend.title = element_text(size = 18, face = "bold"),   # Customize legend title text
-    legend.text = element_text(18),    # Customize legend item text
+   # legend.text = element_text(18),    # Customize legend item text
     legend.position = "top",                # Position the legend
     legend.key = element_rect(fill = "white"),  # Customize legend key appearance
     legend.key.size = unit(1.5, "lines"),      # Adjust size of legend keys (shapes)
-    axis.title.x = element_blank(),    # Remove x-axis title
-    axis.text.x = element_blank()       # Remove x-axis text
+    axis.title.x = element_blank()    # Remove x-axis title
   )
 
 ## DRM Survival Plot ----
@@ -283,7 +284,7 @@ survival_plot <- ggplot(combined_survival_df, aes(y = median_value, x = year,
 plot <- harvest_plot/survival_plot
 
 ### Save the harv/den ----
-ggsave(paste0(selected_dir, "R_IPM_plot.png"), plot = plot, width = 15, height = 10, dpi = 700)
+ggsave(paste0(selected_dir, "R_23NoAbun23kf_IPM_plot.png"), plot = plot, width = 15, height = 10, dpi = 700)
 ggsave("Manuscript/complex_3D-surv.png", plot = plot, width = 10, height = 10, dpi = 700)
 
 

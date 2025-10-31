@@ -77,7 +77,7 @@ hen_histories <- function(df, filter_sex = NA) {
         TRUE ~ "Alive"
       ),
       end = case_when(
-        fate == "Alive" ~ as.Date("2023-12-31"),
+        fate == "Alive" ~ as.Date("2024-12-31"),# this may be issue
         fate == "Censor" ~ censor,
         fate == "Dead" ~ mort
       )
@@ -195,7 +195,7 @@ encounter_histories <- function(df, filter_sex = NA, start_year = NA) {
   if (is.na(start_year)) {
     start_year <- year(min(df$begin, na.rm = TRUE))
   }
-  end_year <- year(max(df$end, na.rm = TRUE))
+  end_year <- year(max(df$end, na.rm = TRUE)) # 10/9 hard coded to test
   
   # Calculate start and stop months for each animal
   df <- df %>%

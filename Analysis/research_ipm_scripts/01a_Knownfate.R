@@ -31,8 +31,9 @@ library(nimble)
 ###-----------------------------------------------------#X
 # source scripts
 source("Analysis/00_IPM_funs.R")
-load("Data/R_IPM_Nimble_data_setup.RData")
-
+# load("Data/Research_IPM_setup-data/Research_IPM_Nimble_data_setup.RData")
+# load("Data/Output/R_IPM_run.Rdata")
+kf.data <- readRDS("Data/Research_IPM_setup-data/kf_data_22-23.rds")
 #############################################################X
 ##           Source model ----
 #############################################################X
@@ -44,19 +45,19 @@ source("models/Individual_ipm-component_models/known_fate.R")
 # Prepare model data
 surv_data = list(
   # KF telemetered data 
-  status = status_matrix,
-  telem.juvenile = is.juv2, # adult is intercept
-  telem.wmu = telem.wmu 
+  status = kf.data$status,
+  telem.juvenile = kf.data$telem.juvenile, # adult is intercept
+  telem.wmu = kf.data$telem.wmu
 )
 
 # Constants
 consts <- list(
   # KF telemetered constants 
-  telem.nind = telem.nind,  # 405
-  telem.first = telem.first,
-  telem.last = telem.last,
-  telem.year.start = telem.year.start,
-  telem.year.end = telem.year.end,
+  telem.nind = kf.data$telem.nind,  # 405
+  telem.first = kf.data$telem.first,
+  telem.last = kf.data$telem.last,
+  telem.year.start = kf.data$telem.year.start,
+  telem.year.end = kf.data$telem.year.end,
   female.telem.wmu = 4,
   male.n.wmu = 3
 )
@@ -75,7 +76,7 @@ inits <- list(
   telem.month.sigma = runif(1, 0, 2),
   
   # Survival probabilities 
-  s.kf = array(runif(1, 0.2, 1), dim = c(telem.nind, 4, 12))
+  s.kf = array(0, dim = c(kf.data$telem.nind, 4, 12))
 )
 
 # Create the Nimble model
@@ -111,7 +112,6 @@ survival_results <- nimbleMCMC(
   nburnin = burn, 
   thin = t, 
   nchains = chain, 
-  setSeed = 1235, 
   samplesAsCodaMCMC = TRUE,
   WAIC = F)
  beepr::beep(1)
@@ -139,6 +139,7 @@ library(tidyr)
 library(coda)
 library(stringr)
 library(purrr)
+library(ggplot2)
 
 # source
 source("Analysis/00_output-processing_funs.R")

@@ -7,17 +7,24 @@ gc()
 # Source scripts of functions and data preparation
 source("Analysis/00_IPM_funs.R")
 
-# location of Turkey database
-access.dir <- "TurkeyDatabase/"
-
-# Read in tables from Access database
-db <- file.path(paste0(access.dir,"TurkeyDB.accdb"))
+# # location of Turkey database
+access.dir <- "C:/Users/vaw5154/OneDrive - The Pennsylvania State University/PhD/PSUTurkey/PA Turkey Database/"
+# 
+# # Read in tables from Access database
+db <- file.path(paste0(access.dir,"TurkeyDB_10_10_2025.accdb"))
 ch <- odbcConnectAccess2007(db) # open channel to database
 dcap <- sqlFetch(ch,"captures", as.is = T)
 dcen <- sqlFetch(ch,"censors", as.is = T)
 dmor <- sqlFetch(ch,"mortalities", as.is = T)
 dtag <- sqlFetch(ch,"transmitter_status", as.is = T)
 close(ch) #close channel to database
+
+# # Version for original MS
+# # # location of Turkey database
+#  access.dir <- "../../../TurkeyDatabase/"
+# #
+# # Read in tables from Access database
+# db <- file.path(paste0(access.dir,"TurkeyDB.accdb"))
 
 # Grab necessary columns from dfs
 capt <- dcap[,c(1:4,6:8,13:16,34)]
@@ -29,11 +36,13 @@ d1 <- merge(capt, cens, by="bandid", all.x=TRUE, all.y=FALSE)
 df <- merge(d1, mor, by="bandid", all.x=TRUE, all.y=FALSE)  
 
 # Filter out rows where capyr is not 2024
-df <- df[df$captyr != 2024, ]
+#df <- df[df$captyr != 2024, ]
+df <- df[df$captyr != 2025, ]
 #df <- df[df$studyarea != "2D", ]
 
 # Filter for rows where sex is "F"
 df <- df[df$sex == "F", ]
+table(df$captyr)
 
 # Create encounter histories w. function
 status <- encounter_histories(df, filter_sex = "F")
@@ -68,6 +77,9 @@ kf_data <- list(
   telem.year.start = dat$hen$year_start,
   telem.year.end = dat$hen$year_end
 )
+
+# identical(telem.first, telem.first)
+# identical(status_matrix, status_matrix)
 
 # Define a directory where you want to save the RDS files
 output_dir <- "Data/Research_IPM_setup-data/"

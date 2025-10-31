@@ -1,6 +1,6 @@
 o_ipm <- nimbleCode({
   ###########################################################X
-  # operational IPM for modeling statewide WMU group dynamics for PA ----
+  # Simple IPM for modeling statewide WMU group dynamics for PA ----
   ###########################################################X
   # Recruitment: Hen with brood (HWB) model ----
   ###########################################################X
@@ -13,33 +13,29 @@ o_ipm <- nimbleCode({
       # Hens with brood
       HWB[i] ~ dbern(hwb.p[i])
       logit(hwb.p[i]) <- hwb.beta1 + hwb.beta2 * hwb.Year2020[i] + hwb.beta3 * hwb.Year2021[i] +
-        hwb.beta4 * hwb.Year2022[i] + hwb.beta5 * hwb.Year2023[i] + hwb.beta6 * hwb.Year2024[i] +
-        hwb.beta7 * hwb.doy.scale[i] +
-        hwb.beta8 * hwb.doy.2[i] + hwb.u[hwb.wmu[i]]
+        hwb.beta4 * hwb.Year2022[i] + hwb.beta5 * hwb.Year2023[i] + hwb.beta6 * hwb.doy.scale[i] +
+        hwb.beta7 * hwb.doy.2[i] + hwb.u[hwb.wmu[i]]
     } # N
   
     #----------------------------------------------------------#
     # HWB: Priors ----
     #----------------------------------------------------------#
   
-    # Intercept (2019)
+    # Intercept
     hwb.beta1 ~ dnorm(0, sd = 1)
-    # year 2020 effect
+    # year 2019 effect
     hwb.beta2 ~ dnorm(0, sd = 1)
-    # year 2021 effect
+    # year 2020 effect
     hwb.beta3 ~ dnorm(0, sd = 1)
-    # year 2022 effect
+    # year 2021 effect
     hwb.beta4 ~ dnorm(0, sd = 1)
-    # year 2023 effect
+    # year 2022 effect
     hwb.beta5 ~ dnorm(0, sd = 1)
-    # year 2024 effect
-    hwb.beta6 ~ dnorm(0, sd = 1)
     # DOY: make conformable for matrix multiplication
     # day of year
-    hwb.beta7 ~ dnorm(0, sd = 1)
+    hwb.beta6 ~ dnorm(0, sd = 1)
     # doy^2
-    hwb.beta8 ~ dnorm(0, sd = 1)
-    
+    hwb.beta7 ~ dnorm(0, sd = 1)
     # Random effect of wmu
     hwb.sigma ~ dunif(0, 10)
     for (j in 1:hwb.J) {
@@ -57,7 +53,7 @@ o_ipm <- nimbleCode({
         aug31.hwb[t,u] <- expit(
           hwb.beta1 + hwb.beta2 * (t == 1) +  hwb.beta3 * (t == 2) +
             hwb.beta4 * (t == 3) +  hwb.beta5 * (t == 4) +
-            hwb.beta6 * (t == 5) + hwb.beta7 * hwb.aug31 + hwb.beta8 * hwb.aug31.2 +
+            hwb.beta6 * hwb.aug31 + hwb.beta7 * hwb.aug31.2 +
             hwb.u[u]
         )
       } # end u
@@ -87,9 +83,8 @@ o_ipm <- nimbleCode({
     # Calculate the mean for each observation
     log(ph.mu[i]) <- ph.beta1 + ph.beta2 * ph.Year2020[i] +
       ph.beta3 * ph.Year2021[i] + ph.beta4 * ph.Year2022[i] +
-      ph.beta5 * ph.Year2023[i] + ph.beta6 * ph.Year2024[i] +
-      ph.beta7 * ph.doy.scale[i] +  ph.beta8 * ph.doy.2[i] + 
-      ph.u[ph.wmu[i]]
+      ph.beta5 * ph.Year2023[i] + ph.beta6 * ph.doy.scale[i] +
+      ph.beta7 * ph.doy.2[i] + ph.u[ph.wmu[i]]
   }
 
   #----------------------------------------------------------#
@@ -99,21 +94,19 @@ o_ipm <- nimbleCode({
   # Using vague priors on betas
   # Intercept
   ph.beta1 ~ dnorm(0, sd = 1)
-  # year 2020 effect
+  # year 2019 effect
   ph.beta2 ~ dnorm(0, sd = 1)
-  # year 2021 effect
+  # year 2020 effect
   ph.beta3 ~ dnorm(0, sd = 1)
-  # year 2022 effect
+  # year 2021 effect
   ph.beta4 ~ dnorm(0, sd = 1)
-  # year 2023 effect
+  # year 2022 effect
   ph.beta5 ~ dnorm(0, sd = 1)
-  # year 2024 effect
-  ph.beta6 ~ dnorm(0, sd = 1)
   # DOY: make conformable for matrix multiplication
   # day of year
-  ph.beta7 ~ dnorm(0, sd = 1)
+  ph.beta6 ~ dnorm(0, sd = 1)
   # doy^2
-  ph.beta8 ~ dnorm(0, sd = 1)
+  ph.beta7 ~ dnorm(0, sd = 1)
 
   # Scaling parameter for Gamma distribution
   ph.disp ~ dunif(0, 1)
@@ -135,8 +128,8 @@ o_ipm <- nimbleCode({
       # Derived estimates for the number of ppb on August 31 per WMU and year
       aug31.ppb[t,u] <- exp(
         ph.beta1 + ph.beta2 * (t == 1) + ph.beta3 * (t == 2) +
-          ph.beta4 * (t == 3) + ph.beta5 * (t == 4) + ph.beta6 * (t == 5) + 
-          ph.beta7 * ppb.aug31 + ph.beta8 * ppb.aug31.2 + ph.u[u]
+          ph.beta4 * (t == 3) + ph.beta5 * (t == 4) + ph.beta6 * ppb.aug31 +
+          ph.beta7 * ppb.aug31.2 + ph.u[u]
       )
     } # end u
   } # end t
@@ -280,9 +273,9 @@ o_ipm <- nimbleCode({
 
   for (t in 1:(male.n.occasions-1)) {
     for (u in 1:male.n.wmu) {
-      logit(male.s.ad.wmu[t,u]) <-  inprod(male.time.effect[1:Nyears], male.time.param[t, 1:Nyears]) + male.wmu.effect[u]
+      logit(male.s.ad.wmu[t,u]) <-  inprod(male.time.effect[1:4], male.time.param[t, 1:4]) + male.wmu.effect[u]
       logit(male.s.juv.wmu[t,u]) <- male.juvenile.effect +
-        inprod(male.time.effect[1:Nyears], male.time.param[t, 1:Nyears]) + male.wmu.effect[u]
+        inprod(male.time.effect[1:4], male.time.param[t, 1:4]) + male.wmu.effect[u]
     }#u
   }#t
 

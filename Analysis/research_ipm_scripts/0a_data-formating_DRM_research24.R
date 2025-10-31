@@ -25,65 +25,45 @@ source("Analysis/00_IPM_funs.R")
 
 # Data cleaning ----
 #### Read in data and select data used for analysis
-# # # Release data
-# df2a <- read.csv("../../PSUTurkey/turkey_IPM/SpringTurkeyHarvest2025/Band Data Export Report_20250711.csv")  # release data
-# df2a <- rename(df2a,bandid="Band.ID")
-# df2a$bandid <- as.character(df2a$bandid)
-# df2b <- read.csv("../../PSUTurkey/turkey_IPM/SpringTurkeyHarvest2025/Reported Band Data Export Report_20250722_ForPSU.csv")  # recovery data
-# df2b <- rename(df2b, bandid="BandNumber")
-# df2b$bandid <- as.character(df2b$bandid)
-# Data cleaning ----
-#### Read in data and select data used for analysis
 # # Release data
-df2a <- read.csv("../../PSUTurkey/turkey_IPM/Data/Banding_harv_data/Band Data Export Report_20240909.csv")  # release data
-df2a <- rename(df2a,bandid="band_id")
+df2a <- read.csv("../../PSUTurkey/turkey_IPM/SpringTurkeyHarvest2025/Band Data Export Report_20250711.csv")  # release data
+df2a <- rename(df2a,bandid="Band.ID")
 df2a$bandid <- as.character(df2a$bandid)
-df2b <- read.csv("../../PSUTurkey/turkey_IPM/Data/Banding_harv_data/Reported Band Data Export Report_20240909_ForPSU.csv")  # recovery data
+df2b <- read.csv("../../PSUTurkey/turkey_IPM/SpringTurkeyHarvest2025/Reported Band Data Export Report_20250722_ForPSU.csv")  # recovery data
 df2b <- rename(df2b, bandid="BandNumber")
 df2b$bandid <- as.character(df2b$bandid)
-##-----------------------------------------------------#X
-# Data cleaning ----
-df <- left_join(df2a[,c(1,2,6,7,11,17,22,35)], df2b[,c(1,6,7,15)], join_by(bandid))
-df <- df[df$recapture!="Yes" & df$Turkey_Age!="U",] # remove recaptures and unknown age
-df <- df[df$Turkey_Sex!="M",]  # remove males
-df <- df[!df$EncounterReason %in% c("Alive", "Found band only", "Predation/Scavenged",
-                                    "Retrieved by pet", "Trap related", "Unknown", "Vehicle"),]
-
-df$capyr <- year(as.Date(df$Date_Capture, "%m/%d/%Y"))
-df <- df[df$capyr != "2024", ]
-
+df <- left_join(df2a[,c(1,2,7,8,12,18,23,24,36)], df2b[,c(1,7,15)], by="bandid")
+df <- df[df$Recapture!="Yes" & df$Turkey.Age!="U",] # remove recaptures and unknown age
+df <- df[df$Turkey.Sex!="M",]  # remove males
+df <- df[is.na(df$EncounterReason) | df$EncounterReason=="Harvest",]  # harvested birds only
+df$capyr <- year(as.Date(df$Date.Capture, "%m/%d/%Y"))
+df <- df[df$capyr!=2025,]
 ### Group WMUs
 # Table that defines grouping of WMUs
-wmu <- c("1A","1B","2A","2B","2C","2D","2E","2F","2G","2H","3A","3B","3C","3D","4A","4B","4C","4D","4E","5A","5B","5C","5D")
+WMU <- c("1A","1B","2A","2B","2C","2D","2E","2F","2G","2H","3A","3B","3C","3D","4A","4B","4C","4D","4E","5A","5B","5C","5D")
 grp <- c(1,1,2,3,2,2,2,4,4,4,4,4,5,6,7,7,8,7,8,9,9,10,10)
-LookUp <- as.data.frame(cbind(wmu,grp))
-df <- left_join(df,LookUp, by="wmu")
-
-# filter groups I want
-# df <- df[df$grp %in% c(2, 6, 7), ]
-df <- df[df$wmu %in% c("2D", "3D", "4D"), ]
-
-tst <- df %>% 
-  group_by(wmu, capyr) %>% 
-  summarise(num_banded = n()) 
-
-table(df$wmu, df$capyr, df$EncounterReason, df$Turkey_Sex)
-
+LookUp <- as.data.frame(cbind(WMU,grp))
+df <- left_join(df,LookUp, by="WMU")
 
 ###Tabulate releases by Year and age
-release <- as.data.frame(table(df$capyr,df$Turkey_Age))
+release <- as.data.frame(table(df$capyr,df$Turkey.Age))
 release
 
-### Set Year 1 to 2020 
+### Set Year 1 to 2020
 df$rYr <- df$Year-2019 #recovery year 99=not recovered
 df$rYr <- ifelse(is.na(df$rYr),99,df$rYr)
 df$cYr <- df$capyr-2019 #release year
 
 ### Tabulate recoveries by year of release/recovery and age
 df %>% 
-  group_by(rYr,cYr,Turkey_Age, wmu) %>%
+  group_by(rYr,cYr,Turkey.Age, WMU) %>%
   summarise(n=n()) %>%
   mutate(total=sum(n))
+
+# filter groups I want
+#df <- df[df$grp %in% c(2, 6, 7), ]
+df <- df[df$WMU %in% c("2D", "3D", "4D"), ]
+table(df$WMU)
 
 ### Create mark-recapture matrix MR
 n.occasions <- max(df$cYr) # number release occasions
@@ -113,13 +93,13 @@ f.kf <- model.matrix(~ f_factor - 1)
 # Create indicator array of which occasion an animal is juvenile
 I <- array(0,c(dim(MR)[1],n.occasions))
 for(i in 1:dim(MR)[1]){ 
-  if(df$Turkey_Age[i]=="J"){
+  if(df$Turkey.Age[i]=="J"){
     I[i,f[i]] <- 1
   }
 }
 ##-----------------------------------------------------#X
 # Create indicator vector of whether animal has a reward band: 1=non-reward band
-II <- ifelse(df$reward_band=="N",1,0)
+II <- ifelse(df$Reward.Band=="N",1,0)
 ##-----------------------------------------------------#X
 # Create design matrix for age coefficient (beta) using a mean parameterization
 j1 <- rep(1,dim(MR)[2]-1)
@@ -159,15 +139,15 @@ female_data <- list(
   female.n.occasions = (dim(MR)[2]),
   female.z = known.state,
   female.y = MR,
-  female.n.wmu = length(unique(df$wmu)),
-  female.wmu = df$wmu,
+  female.n.wmu = length(unique(df$WMU)),
+  female.wmu = df$WMU,
   female.age = female.age,
   female.f.kf = f.kf,
   female.wmu.index = female.wmu.index
 )
 ##-----------------------------------------------------#X
 # Define a directory where you want to save the RDS files
-output_dir <- "Data/Research_IPM_setup-data/"
+output_dir <- "Data/Research_IPM_setup-data/2024_DRM/"
 
 # Loop through the list and save each variable as a separate RDS file
 for (var_name in names(female_data)) {
@@ -192,40 +172,49 @@ library(lubridate)
 # Bring in functions
 source("Analysis/00_IPM_funs.R")
 ##-----------------------------------------------------#X
-#### Read in data and select data used for analysis
-#### Read in data and select data used for analysis
 # # Release data
-df2a <- read.csv("../../PSUTurkey/turkey_IPM/Data/Banding_harv_data/Band Data Export Report_20240909.csv")  # release data
-df2a <- rename(df2a,bandid="band_id")
+df2a <- read.csv("../../PSUTurkey/turkey_IPM/SpringTurkeyHarvest2025/Band Data Export Report_20250711.csv")  # release data
+df2a <- rename(df2a,bandid="Band.ID")
 df2a$bandid <- as.character(df2a$bandid)
-df2b <- read.csv("../../PSUTurkey/turkey_IPM/Data/Banding_harv_data/Reported Band Data Export Report_20240909_ForPSU.csv")  # recovery data
+df2b <- read.csv("../../PSUTurkey/turkey_IPM/SpringTurkeyHarvest2025/Reported Band Data Export Report_20250722_ForPSU.csv")  # recovery data
 df2b <- rename(df2b, bandid="BandNumber")
 df2b$bandid <- as.character(df2b$bandid)
-##-----------------------------------------------------#X
-# Data cleaning ----
-df <- left_join(df2a[,c(1,2,6,7,11,17,22,35)], df2b[,c(1,6,7,15)], join_by(bandid))
-df <- df[df$recapture!="Yes" & df$Turkey_Age!="U",] # remove recaptures and unknown age
-df <- df[df$Turkey_Sex!="F",]  # remove females
-df <- df[!df$EncounterReason %in% c("Alive", "Found band only", "Predation/Scavenged",
-                                    "Retrieved by pet", "Trap related", "Unknown", "Vehicle"),]
-
-df$capyr <- year(as.Date(df$Date_Capture, "%m/%d/%Y"))
-df <- df[df$capyr!=2024,]
-
+df <- left_join(df2a[,c(1,2,7,8,12,18,23,24,36)], df2b[,c(1,7,15)], by="bandid")
+df <- df[df$Recapture!="Yes" & df$Turkey.Age!="U",] # remove recaptures and unknown age
+df <- df[df$Turkey.Sex!="F",]  # remove females
+df <- df[is.na(df$EncounterReason) | df$EncounterReason=="Harvest",]  # harvested birds only
+df$capyr <- year(as.Date(df$Date.Capture, "%m/%d/%Y"))
+df <- df[df$capyr!=2025,]
 ### Group WMUs
 # Table that defines grouping of WMUs
-wmu <- c("1A","1B","2A","2B","2C","2D","2E","2F","2G","2H","3A","3B","3C","3D","4A","4B","4C","4D","4E","5A","5B","5C","5D")
+WMU <- c("1A","1B","2A","2B","2C","2D","2E","2F","2G","2H","3A","3B","3C","3D","4A","4B","4C","4D","4E","5A","5B","5C","5D")
 grp <- c(1,1,2,3,2,2,2,4,4,4,4,4,5,6,7,7,8,7,8,9,9,10,10)
-LookUp <- as.data.frame(cbind(wmu,grp))
-df <- left_join(df,LookUp, by="wmu")
+LookUp <- as.data.frame(cbind(WMU,grp))
+df <- left_join(df,LookUp, by="WMU")
+
+###Tabulate releases by Year and age
+release <- as.data.frame(table(df$capyr,df$Turkey.Age))
+release
+
+### Set Year 1 to 2020
+df$rYr <- df$Year-2019 #recovery year 99=not recovered
+df$rYr <- ifelse(is.na(df$rYr),99,df$rYr)
+df$cYr <- df$capyr-2019 #release year
+
+### Tabulate recoveries by year of release/recovery and age
+df %>% 
+  group_by(rYr,cYr,Turkey.Age, WMU) %>%
+  summarise(n=n()) %>%
+  mutate(total=sum(n))
 
 # filter groups I want
 #df <- df[df$grp %in% c(2, 6, 7), ]
-df <- df[df$wmu %in% c("2D", "3D", "4D"), ]
-table(df$wmu)
+df <- df[df$WMU %in% c("2D", "3D", "4D"), ]
+table(df$WMU)
+
 ##-----------------------------------------------------#X
 ###Tabulate releases by Year and age
-release <- as.data.frame(table(df$capyr,df$Turkey_Age))
+release <- as.data.frame(table(df$capyr,df$Turkey.Age))
 release
 ##-----------------------------------------------------#X
 ### Set Year 1 to 2020
@@ -235,7 +224,7 @@ df$cYr <- df$capyr-2019 #release year
 #-----------------------------------------------------#X
 ### Tabulate recoveries by year of release/recovery and age
 df %>%
-  group_by(rYr,cYr,Turkey_Age) %>%
+  group_by(rYr,cYr,Turkey.Age) %>%
   summarise(n=n()) %>%
   mutate(total=sum(n))
 ##-----------------------------------------------------#X
@@ -263,13 +252,13 @@ f <- apply(MR, 1, get.first)
 # Create indicator array of which occasion an animal is juvenile
 I <- array(0,c(dim(MR)[1],n.occasions))
 for(i in 1:dim(MR)[1]){ 
-  if(df$Turkey_Age[i]=="J"){
+  if(df$Turkey.Age[i]=="J"){
     I[i,f[i]] <- 1
   }
 }
 ##-----------------------------------------------------#X
 # Create indicator vector of whether animal has a reward band: 1=non-reward band
-II <- ifelse(df$reward_band=="N",1,0)
+II <- ifelse(df$Reward.Band=="N",1,0)
 
 # Create design matrix for age coefficient (beta) using a mean parameterization
 j1 <- rep(1,dim(MR)[2]-1)
@@ -292,12 +281,12 @@ male_data <- list(
   male.n.occasions = (dim(MR)[2]),
   male.z = known.state,
   male.y = MR,
-  male.n.wmu = length(unique(df$wmu)),
-  male.wmu = df$wmu 
+  male.n.wmu = length(unique(df$WMU)),
+  male.wmu = df$WMU 
 )
 ##-----------------------------------------------------#X
 # Define a directory where you want to save the RDS files
-output_dir <- "Data/Research_IPM_setup-data/"
+output_dir <- "Data/Research_IPM_setup-data/2024_DRM/"
 
 # Loop through the list and save each variable as a separate RDS file
 for (var_name in names(male_data)) {

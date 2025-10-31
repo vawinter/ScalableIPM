@@ -48,8 +48,19 @@ set.seed(1235)
 ##################################################################X
 
 ### Nimble model set up ----
-load("Data/Research_IPM_setup-data/R_IPM_Nimble_data_setup.RData")
+# load("Data/Research_IPM_setup-data/R_IPM_Nimble_data_setup.RData") # original run
+#load("Data/Research_IPM_setup-data/R_IPM_Nimble_data_setup_noKF24.RData") # 2024 no kf 24
+#load("Data/Research_IPM_setup-data/R_IPM_Nimble_data_setup_24.RData") # all 2024
+#load("Data/Research_IPM_setup-data/R_IPM_Nimble_data_setup_23updated22-24KF.RData") # 2023 Data with 22-24 kf from updated db
+load("Data/Research_IPM_setup-data/TEST/R_IPM_Nimble_data_setup_23updated22-23KF_.RData")
+#load("Data/Research_IPM_setup-data/TEST/R_IPM_24_kf23.RData") # all 2024 w. original kf23
 
+source("Models/research_ipm_23_noabun.R")
+
+# 10/29/2025 - on V:
+# Running no abun model for 20-23 data with 'new' 22-23 KF data from most up to data '10-10' db
+# 10/29/2025 - on Karen:
+# Running no abun model for 20-23 data with 'new' 22-24* KF data from most up to data '10-10' db
 #############################################################X
 # Parallelization setup -----
 #############################################################X
@@ -88,12 +99,13 @@ run_parallel_mcmc <- function(seed_offset) {
     model = model,
     monitors = c(
       # Same monitoring parameters as original script
-      "recruitment", "aug31.ppb", "aug31.hwb",
+    #  "recruitment", 
+      "aug31.ppb", "aug31.hwb",
       "male.h.ad.wmu", "male.s.ad.wmu", 
       "male.h.juv.wmu", "male.s.juv.wmu",
       "female.h.ad.wmu", "female.h.juv.wmu",  
-      "male.N.ad", "male.N.juv",
-      "female.N.ad", "female.N.juv",  
+      # "male.N.ad", "male.N.juv",
+      # "female.N.ad", "female.N.juv",  
       "avg.ad.s.kf", "avg.juv.s.kf", "storage", 
       "juv.male.adj"
     ),
@@ -150,8 +162,8 @@ combined_results <- as.mcmc.list(combined_results)
 stopCluster(cl)
 ##------------------##X
 # Save output
-saveRDS(combined_results, "Data/Output/R_IPM_run.rds")
-save.image(file = "Data/Output/R_IPM_run.Rdata")
+saveRDS(combined_results, "Data/Output/R_IPM_run23NoAbun23kf.rds")
+save.image(file = "Data/Output/R_IPM_run23NoAbun23kf.Rdata")
 
 #############################################################X
 # Model diagnostics -----

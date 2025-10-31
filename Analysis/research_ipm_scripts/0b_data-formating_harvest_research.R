@@ -15,7 +15,7 @@ gc()
 # libraries
 library(dplyr)
 
-dat <- read.csv("Data/Banding_harv_data/FallSprHarvData_20240919.csv")
+dat <- read.csv("Data/FallSprHarvData.csv")
 head(dat)
 
 #... by season
@@ -30,7 +30,7 @@ wmu_spring_adult <- spring %>%
   group_by(age, year, WMU.Group) %>% 
   reframe(wmu_count = sum(count)) %>% 
   filter(age == "gobbler",
-         WMU.Group %in% c("2D", "3D", "4D", "5C"),
+         WMU.Group %in% c("2D", "3D", "4D"),
          year %in% c("2019","2020", "2021", "2022", "2023")) %>% 
   select(year, WMU.Group, wmu_count) %>% 
   as.data.frame()
@@ -40,8 +40,8 @@ wmu_spring_juv <- spring %>%
   group_by(age, year, WMU.Group) %>% 
   reframe(wmu_count = sum(count)) %>% 
   filter(age == "jake",    
-         WMU.Group %in% c("2D", "3D", "4D", "5C"),
-         year %in% c("2019","2020", "2021", "2022", "2023")) %>% 
+         WMU.Group %in% c("2D", "3D", "4D"),
+         year %in% c("2019","2020", "2021", "2022", "2023")) %>%  
   select(year, WMU.Group, wmu_count) %>% 
   as.data.frame()
 
@@ -52,7 +52,7 @@ wmu_fall_adult <- fall %>%
   reframe(wmu_count = sum(count))%>% 
   filter(age == "hen",
          WMU.Group %in% c("2D", "3D", "4D"),
-         year %in% c("2019","2020", "2021", "2022", "2023")) %>%  
+         year %in% c("2019","2020", "2021", "2022", "2023")) %>%   
   select(year, WMU.Group, wmu_count) %>% 
   as.data.frame()
 
@@ -118,8 +118,6 @@ saveRDS(harvest.ad.spring, "Data/Research_IPM_setup-data/harvest.ad.spring.rds")
 saveRDS(harvest.juv.spring, "Data/Research_IPM_setup-data/harvest.juv.spring.rds")
 saveRDS(harvest.ad.fall, "Data/Research_IPM_setup-data/harvest.ad.fall.rds")
 saveRDS(harvest.juv.fall, "Data/Research_IPM_setup-data/harvest.juv.fall.rds")
-
-
 
 
 
