@@ -107,7 +107,7 @@ for (i in 1:telem.nind) {
         # Mark as juvenile if: captured as juvenile AND currently in capture year AND Jan-May
         is_juvenile_matrix[i, y, m] <- (hen_mo$age[i] == "J" && 
                                           y == hen_mo$year_start[i] && 
-                                          m <= 5)
+                                          m <= 5) # Juvenieles age to Audlt in June
       }
     } # end m
   } # end y

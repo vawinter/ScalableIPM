@@ -1,10 +1,11 @@
-################################################X
-#         Table formatting for manuscript      #X
-## ========================================= ###X
-# = Comparing model fit for full and simple    #X
-##  ============ model outputs ============== ##X
-#                Date: 10/03/2024              #X
-################################################X
+###############################################################################X
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+############## Research Integrated Population Model (R_IPM): ##################X
+#                     #---# PhD Dissertation: R_IPM #---#
+#        Creating a Bayesian IPM to inform turkey management in PA
+###                  *** Table formatting for manuscript ***                 ###X
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #X
+###############################################################################X
 
 rm(list = ls())
 gc()
