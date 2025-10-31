@@ -1,7 +1,7 @@
 ###############################################################################X
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#################### Integrated Population Model (IPM): #######################X
-#                        #---# Research IPM #---#
+############## Research Integrated Population Model (R_IPM): ##################X
+#                     #---# PhD Dissertation: R_IPM #---#
 #        Creating a Bayesian IPM to inform turkey management in PA
 ###                     *** Output organization ***                         ###X
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #X
@@ -48,7 +48,7 @@ wmu_areas <- readRDS("Data/wmu_areas_km.rds")
 
 ###-----------------------------------------------------#X
 load("Data/Output/R_IPM_run.Rdata")
-#combined_results <- readRDS("Data/Output/R_IPM_run24TST.rds")
+combined_results <- readRDS("Data/Output/TEST/R_IPM_run23NoAbunNew24kf.rds")
 
 # `samples` is an MCMC array with dimensions [WMU, Year]
 samples_df <- as.data.frame(combined_results[[1]])
@@ -161,7 +161,7 @@ if (!dir.exists(folder_path)) {
 } else {
   message("Folder already exists: ", folder_path)
 }
-type = "TEST/R_23NoAbunNew23kf"
+type = "TEST/R_23NoAbunNew24kf"
 saveRDS(kf_survival_df, paste0("Data/Output/", type, "_kf-survival_summary.rds"))
 saveRDS(combined_survival_df, paste0("Data/Output/", type, "_comb-survival_summary.rds"))
 saveRDS(drm_harvest_df, paste0("Data/Output/", type,  "_harvest_summary.rds"))

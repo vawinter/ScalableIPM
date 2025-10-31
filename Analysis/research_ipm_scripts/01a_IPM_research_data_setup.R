@@ -1,8 +1,8 @@
 ###############################################################################X
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#################### Integrated Population Model (IPM): #######################X
-#                        #---# Research IPM #---#
-#        Creating a Bayesian IPM to inform turkey management in PA
+############## Research Integrated Population Model (R_IPM): ##################X
+#                     #---# PhD Dissertation: R_IPM #---#
+#
 ###               ***  Data formatting and model fitting ***                ###X
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #X
 ###############################################################################X
@@ -21,20 +21,40 @@ library(coda)
 
 # Import required scripts
 source("Analysis/00_IPM_funs.R")
-# load("Data/Research_IPM_setup-data/R_IPM_Nimble_data_setup_noKF24.RData")
-#load("Data/Research_IPM_setup-data/R_IPM_Nimble_data_setup_23updated22-24KF.RData") # 2023 Data with 22-24 kf from updated db
-#load("Data/Research_IPM_setup-data/R_IPM_Nimble_data_setup_23updated22-23KF.RData") # 2023 Data with 22-24 kf from updated db
-# is.juv <- readRDS("Data/Research_IPM_setup-data/telem.juv.corrected.rds")
-#source("Models/research_ipm.R")
 
-which <- "23updated22-23KF_"
-type <- paste0("TEST/R_IPM_Nimble_data_setup_", which)
+# What year am I fitting [2020- ]
+which <- "24"
+# for saving
+type <- paste0("R_IPM_24_Data/R_IPM_Nimble_data_setup_", which)
 #############################################################X
-# Load in DRM and known fate data ----
+# Load in recruitment, DRM, and known fate data ----
 #############################################################X
+# list files [recruitment]
 dir <- "Data/Research_IPM_setup-data/"
 
 # list files
+r <- list.files(dir, pattern = "\\.rds$", full.names = TRUE)
+names <- sub("\\.rds$", "", basename(r))
+
+myfiles <- lapply(r, readRDS)
+names(myfiles) <- names
+list2env(myfiles, globalenv())
+
+rm(myfiles, names, r)
+##-----------------------------------##x
+# list files [KF 24]
+dir <- "Data/Research_IPM_setup-data/kf_data_22-24/"
+K <- list.files(dir, pattern = "\\.rds$", full.names = TRUE)
+names <- sub("\\.rds$", "", basename(K))
+
+myfiles <- lapply(K, readRDS)
+names(myfiles) <- names
+list2env(myfiles, globalenv())
+
+rm(myfiles, names, K)
+##-----------------------------------##x
+# list files [DRM 24]
+dir <- "Data/Research_IPM_setup-data/2024_DRM/"
 x <- list.files(dir, pattern = "\\.rds$", full.names = TRUE)
 names <- sub("\\.rds$", "", basename(x))
 
@@ -43,18 +63,6 @@ names(myfiles) <- names
 list2env(myfiles, globalenv())
 
 rm(myfiles, names, x)
-
-# list files [KF 23]
-dir <- "Data/Research_IPM_setup-data/KF_data_new23/"
-x <- list.files(dir, pattern = "\\.rds$", full.names = TRUE)
-names <- sub("\\.rds$", "", basename(x))
-
-myfiles <- lapply(x, readRDS)
-names(myfiles) <- names
-list2env(myfiles, globalenv())
-
-rm(myfiles, names, x)
-
 
 ##################################################X
 # Estimate parameters in Nimble ----
@@ -68,7 +76,7 @@ Nyears = male.n.occasions-1
 nimble.data <- list(
   # KF telemetered data 
   status = status_matrix,
-  telem.juvenile = is_juvenile_matrix2,  #check that original matrix before switching and rerunning. I think I used the wrong juv in my retest
+  telem.juvenile = is_juvenile_matrix2,  
   telem.wmu = telem.wmu, 
   
   ###-----------#X
@@ -81,7 +89,7 @@ nimble.data <- list(
   hwb.Year2021 = hwb.Year2021,
   hwb.Year2022 = hwb.Year2022,
   hwb.Year2023 = hwb.Year2023,
-#  hwb.Year2024 = hwb.Year2024,
+  hwb.Year2024 = hwb.Year2024,
   hwb.aug31 = hwb.aug31,
   hwb.aug31.2 = hwb.aug31.2,
   
@@ -95,7 +103,7 @@ nimble.data <- list(
   ph.Year2021 = ph.Year2021,
   ph.Year2022 = ph.Year2022,
   ph.Year2023 = ph.Year2023,
- # ph.Year2024 = ph.Year2024,
+  ph.Year2024 = ph.Year2024,
   ppb.aug31 = ppb.aug31,
   ppb.aug31.2 = ppb.aug31.2,
   
@@ -105,11 +113,11 @@ nimble.data <- list(
   male.time.param = male.time.param,
   
   ###-----------#X
-  # Abundance (2020 - 2023)
-  harvest.ad.fall = round(harvest.ad.fall[2:5,]),
-  harvest.juv.fall = round(harvest.juv.fall[2:5,]),
-  harvest.ad.spring  =  round(harvest.ad.spring[2:5,]),
-  harvest.juv.spring = round(harvest.juv.spring[2:5,]),
+  # Abundance (2020 - 2024)
+  harvest.ad.fall = round(harvest.ad.fall[2:male.n.occasions,]), # max index
+  harvest.juv.fall = round(harvest.juv.fall[2:male.n.occasions,]),
+  harvest.ad.spring  =  round(harvest.ad.spring[2:male.n.occasions,]),
+  harvest.juv.spring = round(harvest.juv.spring[2:male.n.occasions,]),
   # First year harvest (2020)
   th.year1.female.ad = as.integer(round(harvest.ad.fall[2,])),
   th.year1.female.juv = as.integer(round(harvest.juv.fall[2,])),
@@ -182,7 +190,7 @@ inits <- list(
   hwb.beta5 = 0,
   hwb.beta6 = 0,
   hwb.beta7 = 0,
-#  hwb.beta8 = 0,
+  hwb.beta8 = 0,
   hwb.sigma = 1,
   hwb.u = rep(0, length(unique(hwb.wmu))),
   
@@ -195,7 +203,7 @@ inits <- list(
   ph.beta5 = 0,
   ph.beta6 = 0,
   ph.beta7 = 0,
- # ph.beta8 = 0,
+  ph.beta8 = 0,
   ph.sigma.u = 1,
   
   ###-----------#X
@@ -228,7 +236,7 @@ inits <- list(
   female.N.juv = array(70000, dim = c(Nyears, female.n.wmu))
 )
 # save
-saveRDS(nimble.data, paste0("Data/Research_IPM_setup-data/", type, "nimble.data.rds"))
-saveRDS(inits, paste0("Data/Research_IPM_setup-data/", type, "inits.rds"))
-saveRDS(consts, paste0("Data/Research_IPM_setup-data/", type, "consts.rds"))
+saveRDS(nimble.data, paste0("Data/Research_IPM_setup-data/", type, "_nimble.data.rds"))
+saveRDS(inits, paste0("Data/Research_IPM_setup-data/", type, "_inits.rds"))
+saveRDS(consts, paste0("Data/Research_IPM_setup-data/", type, "_consts.rds"))
 save.image(file = paste0("Data/Research_IPM_setup-data/", type,".RData"))

@@ -1,6 +1,6 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#################### Integrated Population Model (IPM): #######################X
-#                 #---# PhD Dissertation: Complex IPM #---#
+############## Research Integrated Population Model (R_IPM): ##################X
+#                     #---# PhD Dissertation: R_IPM #---#
 #        Creating a Bayesian IPM to inform turkey management in PA
 ###                       *** Real data run ***                             ###X
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #X
@@ -22,7 +22,7 @@ library(reshape2)
 library(patchwork)
 selected_dir <- "Datavis/TEST/"
 
-type = "TEST/R_23NoAbun23kf"
+type = "TEST/R_23NoAbun24kf"
 # Load data 
 kf_survival_df <- readRDS(paste0("Data/Output/", type, "_kf-survival_summary.rds"))
 drm_harvest_df <- readRDS(paste0("Data/Output/", type, "_kf-survival_summary.rds"))

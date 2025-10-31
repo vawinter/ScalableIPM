@@ -56,116 +56,7 @@ cloglog <- function(x, y){
 }
 
 
-hen_histories <- function(df, filter_sex = NA) {
-  library(dplyr)
-  library(lubridate)
-  
-  # Filter by sex if specified
-  if (!is.na(filter_sex)) {
-    df <- df %>% filter(sex == filter_sex)
-  }
-  
-  # Parse dates and calculate fate and end date
-  df <- df %>%
-    mutate(
-      begin = as.Date(paste0(captyr, "-", captmo, "-", captday)),
-      censor = as.Date(paste0(cenyr, "-", cenmo, "-", cenday), format = "%Y-%m-%d"),
-      mort = as.Date(paste0(estmortyr, "-", estmortmo, "-", estmortday), format = "%Y-%m-%d"),
-      fate = case_when(
-        !is.na(mort) ~ "Dead",
-        !is.na(censor) ~ "Censor",
-        TRUE ~ "Alive"
-      ),
-      end = case_when(
-        fate == "Alive" ~ as.Date("2024-12-31"),# this may be issue
-        fate == "Censor" ~ censor,
-        fate == "Dead" ~ mort
-      )
-    ) 
-  
-  # Define study period
-  start_year <- year(min(df$begin, na.rm = TRUE))
-  end_year <- year(max(df$end, na.rm = TRUE))
-  telem.nyears <- end_year - start_year + 1
-  
-  # Calculate start and stop months for each individual
-  df <- df %>%
-    mutate(
-      start = month(begin) + 12 * (year(begin) - start_year),
-      stop = month(end) + 12 * (year(end) - start_year),
-      first = month(begin),
-      last = month(end),
-      year_start = year(begin) - start_year + 1,  # Relative start year
-      year_end = year(end) - start_year + 1      # Relative end year
-    )
-  
-   # Add WMU indicator variables
-  df <- df %>%
-    mutate(
-      is.2d = ifelse(studyarea == "2D", 1, 0),
-      is.3d = ifelse(studyarea == "3D", 1, 0),
-      is.5c = ifelse(studyarea == "5C", 1, 0),
-      is.4d = ifelse(studyarea == "4D", 1, 0)  
-    )
-  
-  # Initialize the telem_month array with dimensions: [individuals, years, months]
-  telem.nind <- nrow(df)
-  telem_month <- array(NA, dim = c(telem.nind, telem.nyears, 12))  # [individuals, years, months]
-  
-  # Fill the telem_month array: For each individual, year, and month
-  for (i in 1:telem.nind) {
-    for (y in 1:telem.nyears) {
-      for (m in 1:12) {
-        # Calculate the start and stop months relative to each year
-        month_index <- (y - 1) * 12 + m
-        # Check if the individual was alive in this month
-        if (month_index >= df$start[i] & month_index <= df$stop[i]) {
-          telem_month[i, y, m] <- m  # Store month number (1-12)
-        }
-      }
-    }
-  }
-  
-  # Initialize 3D arrays for juvenile status and observation data
-  is_juvenile_matrix <- array(0, dim = c(telem.nind, telem.nyears, 12))
-  is_data <- array(0, dim = c(telem.nind, telem.nyears, 12))
-  
-  for (i in 1:telem.nind) {
-    for (y in 1:telem.nyears) {
-      for (m in 1:12) {
-        month_index <- (y - 1) * 12 + m
-        if (month_index >= df$start[i] && month_index <= df$stop[i]) {
-          
-          # Calendar year and month
-          this_year <- df$captyr[i] + y - 1
-          this_month <- m
-          
-          # Determine juvenile status
-          if (df$age[i] == "J" && this_year == df$captyr[i] && this_month <= 5) {
-            is_juvenile_matrix[i, y, m] <- 1  # Juvenile Jan–June of capture year
-          } else {
-            is_juvenile_matrix[i, y, m] <- 0  # Adult otherwise
-          }
-          
-          is_data[i, y, m] <- 1  # Data is present
-        }
-      }
-    }
-  }
-  
-  
-  
-  # Return the processed dataframe, is_juvenile_matrix, is_data, and telem_month
-  return(list(
-    hen = df,
-    is_juvenile_matrix = is_juvenile_matrix,
-    is_data = is_data,
-    telem_month = telem_month
-  ))
-}
-
-
-encounter_histories <- function(df, filter_sex = NA, start_year = NA) {
+encounter_histories <- function(df, filter_sex = NA, start_year = NA, stop_year = NA) {
   library(dplyr)
   library(lubridate)
   
@@ -195,7 +86,7 @@ encounter_histories <- function(df, filter_sex = NA, start_year = NA) {
   if (is.na(start_year)) {
     start_year <- year(min(df$begin, na.rm = TRUE))
   }
-  end_year <- year(max(df$end, na.rm = TRUE)) # 10/9 hard coded to test
+  end_year <- stop_year 
   
   # Calculate start and stop months for each animal
   df <- df %>%

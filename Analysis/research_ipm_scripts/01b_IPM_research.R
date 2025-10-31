@@ -1,7 +1,7 @@
 ###############################################################################X
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-############## Research Integrated Population Model (R IPM): ##################X
-###                                                                         ###X
+############## Research Integrated Population Model (R_IPM): ##################X
+#                     #---# PhD Dissertation: R_IPM #---#
 #    Modeling: Known fate (kf) for hen annual survival, Hen with brood (HWB) and 
 #       Pouts per brood (PPB) recruitment models, Dead-recovery model (DRM) for 
 #       harvest rate and back-transformed annual survival for males, per WMU, 
