@@ -23,9 +23,9 @@ library(coda)
 source("Analysis/00_IPM_funs.R")
 
 # What year am I fitting [2020- ]
-which <- "24"
+which <- "23"
 # for saving
-type <- paste0("R_IPM_24_Data/R_IPM_Nimble_data_setup_", which)
+type <- paste0("R_IPM_",which,"_Data/R_IPM_Nimble_data_setup_", which)
 #############################################################X
 # Load in recruitment, DRM, and known fate data ----
 #############################################################X
@@ -43,7 +43,7 @@ list2env(myfiles, globalenv())
 rm(myfiles, names, r)
 ##-----------------------------------##x
 # list files [KF 24]
-dir <- "Data/Research_IPM_setup-data/kf_data_22-24/"
+dir <- "Data/Research_IPM_setup-data/kf_data_22-23/"
 K <- list.files(dir, pattern = "\\.rds$", full.names = TRUE)
 names <- sub("\\.rds$", "", basename(K))
 
@@ -54,7 +54,7 @@ list2env(myfiles, globalenv())
 rm(myfiles, names, K)
 ##-----------------------------------##x
 # list files [DRM 24]
-dir <- "Data/Research_IPM_setup-data/2024_DRM/"
+dir <- "Data/Research_IPM_setup-data/2023_DRM/"
 x <- list.files(dir, pattern = "\\.rds$", full.names = TRUE)
 names <- sub("\\.rds$", "", basename(x))
 
@@ -89,7 +89,7 @@ nimble.data <- list(
   hwb.Year2021 = hwb.Year2021,
   hwb.Year2022 = hwb.Year2022,
   hwb.Year2023 = hwb.Year2023,
-  hwb.Year2024 = hwb.Year2024,
+#  hwb.Year2024 = hwb.Year2024,
   hwb.aug31 = hwb.aug31,
   hwb.aug31.2 = hwb.aug31.2,
   
@@ -103,7 +103,7 @@ nimble.data <- list(
   ph.Year2021 = ph.Year2021,
   ph.Year2022 = ph.Year2022,
   ph.Year2023 = ph.Year2023,
-  ph.Year2024 = ph.Year2024,
+#  ph.Year2024 = ph.Year2024,
   ppb.aug31 = ppb.aug31,
   ppb.aug31.2 = ppb.aug31.2,
   
@@ -190,7 +190,7 @@ inits <- list(
   hwb.beta5 = 0,
   hwb.beta6 = 0,
   hwb.beta7 = 0,
-  hwb.beta8 = 0,
+#  hwb.beta8 = 0,
   hwb.sigma = 1,
   hwb.u = rep(0, length(unique(hwb.wmu))),
   
@@ -203,7 +203,7 @@ inits <- list(
   ph.beta5 = 0,
   ph.beta6 = 0,
   ph.beta7 = 0,
-  ph.beta8 = 0,
+#  ph.beta8 = 0,
   ph.sigma.u = 1,
   
   ###-----------#X

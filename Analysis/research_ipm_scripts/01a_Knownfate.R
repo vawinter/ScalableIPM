@@ -1,7 +1,7 @@
 ###############################################################################X
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#################### Integrated Population Model (IPM): #######################X
-#                 #---# PhD Dissertation: Chapter 1 #---#
+############## Research Integrated Population Model (R_IPM): ##################X
+#                     #---# PhD Dissertation: R_IPM #---#
 #        Creating a Bayesian IPM to inform turkey management in PA
 ###                                                                         ###X
 #    Modeling: known-fate for telemetered hens by wildlife management unit (WMU), 
@@ -26,14 +26,25 @@ gc()
 set.seed(1235)
 ###-----------------------------------------------------#X
 # Load necessary libraries
-library(RODBC)
 library(nimble)
 ###-----------------------------------------------------#X
 # source scripts
 source("Analysis/00_IPM_funs.R")
-# load("Data/Research_IPM_setup-data/Research_IPM_Nimble_data_setup.RData")
-# load("Data/Output/R_IPM_run.Rdata")
-kf.data <- readRDS("Data/Research_IPM_setup-data/kf_data_22-23.rds")
+##-----------------------------------##x
+# # list files [KF 24]
+# dir <- "Data/Research_IPM_setup-data/kf_data_22-23/"
+# K <- list.files(dir, pattern = "\\.rds$", full.names = TRUE)
+# names <- sub("\\.rds$", "", basename(K))
+# 
+# myfiles <- lapply(K, readRDS)
+# names(myfiles) <- names
+# list2env(myfiles, globalenv())
+# 
+# rm(myfiles, names, K)
+##-----------------------------------##x
+nimble.data <- readRDS("Data/Research_IPM_setup-data/R_IPM_24_Data/R_IPM_Nimble_data_setup_24_nimble.data.rds")
+inits <- readRDS("Data/Research_IPM_setup-data/R_IPM_24_Data/R_IPM_Nimble_data_setup_24_inits.rds")
+consts <- readRDS("Data/Research_IPM_setup-data/R_IPM_24_Data/R_IPM_Nimble_data_setup_24_consts.rds")
 #############################################################X
 ##           Source model ----
 #############################################################X
@@ -45,19 +56,19 @@ source("models/Individual_ipm-component_models/known_fate.R")
 # Prepare model data
 surv_data = list(
   # KF telemetered data 
-  status = kf.data$status,
-  telem.juvenile = kf.data$telem.juvenile, # adult is intercept
-  telem.wmu = kf.data$telem.wmu
+  status = nimble.data$status,
+  telem.juvenile = nimble.data$telem.juvenile, # adult is intercept
+  telem.wmu = nimble.data$telem.wmu
 )
 
 # Constants
 consts <- list(
   # KF telemetered constants 
-  telem.nind = kf.data$telem.nind,  # 405
-  telem.first = kf.data$telem.first,
-  telem.last = kf.data$telem.last,
-  telem.year.start = kf.data$telem.year.start,
-  telem.year.end = kf.data$telem.year.end,
+  telem.nind = consts$telem.nind,  # 405
+  telem.first = consts$telem.first,
+  telem.last = consts$telem.last,
+  telem.year.start = consts$telem.year.start,
+  telem.year.end = consts$telem.year.end,
   female.telem.wmu = 4,
   male.n.wmu = 3
 )
@@ -76,7 +87,7 @@ inits <- list(
   telem.month.sigma = runif(1, 0, 2),
   
   # Survival probabilities 
-  s.kf = array(0, dim = c(kf.data$telem.nind, 4, 12))
+  s.kf = array(0, dim = c(consts$telem.nind, 4, 12))
 )
 
 # Create the Nimble model
@@ -102,9 +113,9 @@ survival_results <- nimbleMCMC(
   model = model,
   monitors = c(
     # Original parameters
-    "telem.beta.int", "telem.beta.age", "telem.beta.wmu", "telem.beta.month",
-    "telem.sigma", "telem.month.sigma", "storage", 
-    
+    # "telem.beta.int", "telem.beta.age", "telem.beta.wmu", "telem.beta.month",
+    # "telem.sigma", "telem.month.sigma", "storage", 
+    # 
     # Derived parameters
     "avg.ad.s.kf", "avg.juv.s.kf", "juv.male.adj"
                ),
@@ -149,6 +160,7 @@ samples_df <- as.data.frame(survival_results$chain1)
 
 avg.ad.s.kf <- process_category_wmu(samples_df, "avg.ad.s.kf", "Female", "Adult")
 avg.juv.s.kf <- process_category_wmu(samples_df, "avg.juv.s.kf", "Female", "Juvenile")
+avg.juv.m.s.kf <- process_category_wmu(samples_df, "juv.male.adj", "Male", "Juvenile")
 
 
 # Combine dfs

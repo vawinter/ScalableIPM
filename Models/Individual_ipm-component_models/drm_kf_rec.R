@@ -9,7 +9,7 @@ drm_kf_rec <- nimbleCode({
   for (i in 1:hwb.N) {
     # Hens with brood
     HWB[i] ~ dbern(hwb.p[i])
-    logit(hwb.p[i]) <- hwb.beta1 * hwb.Year2019[i] + hwb.beta2 * hwb.Year2020[i] + hwb.beta3 * hwb.Year2021[i] + 
+    logit(hwb.p[i]) <- hwb.beta1 + hwb.beta2 * hwb.Year2020[i] + hwb.beta3 * hwb.Year2021[i] + 
       hwb.beta4 * hwb.Year2022[i] + hwb.beta5 * hwb.Year2023[i] + hwb.beta6 * hwb.doy.scale[i] + 
       hwb.beta7 * hwb.doy.2[i] + hwb.u[hwb.wmu[i]]
   } # N
@@ -37,6 +37,19 @@ drm_kf_rec <- nimbleCode({
   for (j in 1:hwb.J) {
     hwb.u[j] ~ dnorm(0, sd = hwb.sigma)
   } # J
+  #----------------------------------------------------------#
+  # Calculate the expected number of females on Aug 31 (Sept 1) ----
+  #----------------------------------------------------------#
+  
+  # Loop over the years I am estimating abundance (4)
+  for (t in 1:Nyears) {
+    for (u in 1:female.n.wmu) {
+      aug31.hwb[t, u] <- expit(hwb.beta1 + hwb.beta2 * 
+                                 (t == 1) + hwb.beta3 * (t == 2) + hwb.beta4 * 
+                                 (t == 3) + hwb.beta5 * (t == 4) + hwb.beta6 * 
+                                 hwb.aug31 + hwb.beta7 * hwb.aug31.2 + hwb.u[u])
+    }
+  }
   ###########################################################X
   # Recruitment: Poults per brood (PPB) model ----
   ###########################################################X
@@ -56,7 +69,7 @@ drm_kf_rec <- nimbleCode({
     ph.theta[i] <- 1/ph.disp
     
     # Calculate the mean for each observation
-    log(ph.mu[i]) <- ph.beta1 * ph.Year2019[i] + ph.beta2 * ph.Year2020[i] + 
+    log(ph.mu[i]) <- ph.beta1  + ph.beta2 * ph.Year2020[i] + 
       ph.beta3 * ph.Year2021[i] + ph.beta4 * ph.Year2022[i] + 
       ph.beta5 * ph.Year2023[i] + ph.beta6 * ph.doy.scale[i] + 
       ph.beta7 * ph.doy.2[i] + ph.u[ph.wmu[i]]  
@@ -90,259 +103,158 @@ drm_kf_rec <- nimbleCode({
   for (j in 1:ph.J) {
     ph.u[j] ~ dnorm(0, sd = ph.sigma.u)
   }
-  ###########################################################X
+  #----------------------------------------------------------#
+  # Calculate the expected ratio of poults on Aug 31 (Sept 1) ----
+  #----------------------------------------------------------#
+  
+  # Loop over the years I am estimating abundance (4)
+  for (t in 1:Nyears) {
+    for (u in 1:female.n.wmu) {
+      aug31.ppb[t, u] <- exp(ph.beta1 + ph.beta2 * (t == 1) + ph.beta3 * (t == 2) + ph.beta4 * (t == 3) + 
+                               ph.beta5 * (t == 4) + ph.beta6 * ppb.aug31 + 
+                               ph.beta7 * ppb.aug31.2 + ph.u[u])
+    }
+  }
+  ##########################################################X
   # Known-fate model ----
   ###########################################################X
-  #----------------------------------------------------------#
-  # Known-fate model: Priors on age and wmu ----
-  #----------------------------------------------------------#
+  ###########################################################X
+  # Known-fate Model: Priors on Intercept, Age, and WMU ----
   ###########################################################X
   # Intercept
   telem.beta.int[1] ~ dnorm(0, sd = 0.5)
   
-  # Age
-  telem.beta.age[1] ~ dnorm(0, sd = 0.5) 
+  # Age effect
+  telem.beta.age[1] ~ dnorm(0, sd = 0.5)
   
-  
-  # WMU
-  for(w in 1:3){
-    telem.beta.wmu[w] ~ dnorm(0, sd = 1)
+  ###########################################################X
+  # WMU random effect  ----
+  ###########################################################X
+  telem.sigma ~ dunif(0, 5)
+  for (w in 1:female.telem.wmu) {
+    telem.beta.wmu[w] ~ dnorm(0, sd = telem.sigma)
   }
   
-  #----------------------------------------------------------#
-  # # Known-fate model: Likelihood ----
-  #----------------------------------------------------------#
+  ###########################################################X
+  # Month random effect  ----
+  ###########################################################X
+  telem.month.sigma ~ dunif(0, 5)
+  for (m in 1:12) {
+    telem.beta.month[m] ~ dnorm(0, sd = telem.month.sigma)
+  }
+  
+  ###########################################################X
+  # Known Fate Model: Likelihood ----
+  ###########################################################X
+  
+  # Loop over all individuals in the dataset
   for (i in 1:telem.nind) {
-    # first to last encounter of each individual
-    for (t in (telem.first[i]):telem.last[i]) {
-      # Derived individual survival rate with inverse cloglog
-      s.kf[i, t] <- telem.beta.int[1] + telem.beta.age[1] * telem.juvenile[i, t] +
-        inprod(telem.beta.wmu[1:3], telem.wmu[i, 1:3])
+    # Loop over the range of years in which each individual was tracked
+    for (y in telem.year.start[i]:telem.year.end[i]) {
       
-      # Likelihood for individual capture histories
-      status[i, t] ~ dbern(prob = icloglog(s.kf[i, t]))
-      
-    }
-  }
-  
-  #----------------------------------------------------------#
-  # Cumulative survival per age, wmu, and 'cohort' ----
-  #----------------------------------------------------------#
-  # Initialize storage vector
-  # intercept = adult, wmu 1
-  storage[1,1] <- icloglog(telem.beta.int[1]) # wmu 1 + adult
-  storage[1,2] <- icloglog(telem.beta.int[1] + telem.beta.age[1]) # wmu 1 + juvenile
-  
-  # loop over wmus
-  for (j in 1:(female.telem.wmu-1)) {
-    # Adult in wmu + 1
-    storage[j+1,1] <- icloglog(telem.beta.int[1] + telem.beta.wmu[j])
-    # Juvenile in wmu + 1
-    storage[j+1,2] <- icloglog(telem.beta.int[1] + telem.beta.age[1] + telem.beta.wmu[j])
-  }
-  
-  # Calculate cumulative survival: adult
-  female.s.kf[1:female.telem.wmu,1,1] <- storage[1:female.telem.wmu,1]^10 # Jan (Dec + 1)
-  female.s.kf[1:female.telem.wmu,1,2] <- storage[1:female.telem.wmu,1]^9 # Feb (Jan + 1)
-  female.s.kf[1:female.telem.wmu,1,3] <- storage[1:female.telem.wmu,1]^8 # March
-  female.s.kf[1:female.telem.wmu,1,4] <- storage[1:female.telem.wmu,1]^7 # April
-  
-  # Calculate cumulative survival: juvenile (until June, then age up to adult)
-  female.s.kf[1:female.telem.wmu,2,1] <- storage[1:female.telem.wmu,2]^5 * storage[1:female.telem.wmu,1]^5
-  female.s.kf[1:female.telem.wmu,2,2] <- storage[1:female.telem.wmu,2]^4 * storage[1:female.telem.wmu,1]^5
-  female.s.kf[1:female.telem.wmu,2,3] <- storage[1:female.telem.wmu,2]^3 * storage[1:female.telem.wmu,1]^5
-  female.s.kf[1:female.telem.wmu,2,4] <- storage[1:female.telem.wmu,2]^2 * storage[1:female.telem.wmu,1]^5
-  
-  #----------------------------------------------------------#
-  # Cumulative survival per age, wmu not above, and 'cohort' ----
-  #----------------------------------------------------------#
-  # Create prior on cumulative survival for remaining wmus
-  # Adults
-  female.s.kf.est[5, 1, 1] ~ dunif(0.7, 0.8) # alternative to cloglog, restricting values
-  female.s.kf.est[5, 1, 2] ~ dunif(0.7, 0.8) 
-  female.s.kf.est[5, 1, 3] ~ dunif(0.7, 0.8) 
-  female.s.kf.est[5, 1, 4] ~ dunif(0.7, 0.8) 
-  
-  female.s.kf.est[6, 1, 1] ~ dunif(0.7, 0.8) 
-  female.s.kf.est[6, 1, 2] ~ dunif(0.7, 0.8) 
-  female.s.kf.est[6, 1, 3] ~ dunif(0.7, 0.8) 
-  female.s.kf.est[6, 1, 4] ~ dunif(0.7, 0.8) 
-  
-  # Juvenile (until June, then age up to adult)
-  female.s.kf.est[5, 2, 1] ~ dunif(0.7, 0.8) # alternative to cloglog, restricting values
-  female.s.kf.est[5, 2, 2] ~ dunif(0.7, 0.8) 
-  female.s.kf.est[5, 2, 3] ~ dunif(0.7, 0.8) 
-  female.s.kf.est[5, 2, 4] ~ dunif(0.7, 0.8) 
-  
-  female.s.kf.est[6, 2, 1] ~ dunif(0.7, 0.8) 
-  female.s.kf.est[6, 2, 2] ~ dunif(0.7, 0.8) 
-  female.s.kf.est[6, 2, 3] ~ dunif(0.7, 0.8) 
-  female.s.kf.est[6, 2, 4] ~ dunif(0.7, 0.8) 
-  
-  # cloglog option
-  # icloglog(female.s.kf.est[i, 1, j]) ~ dnorm(0, sd = 0.5) # option 1
-  
-  #----------------------------------------------------------#
-  # Creating array of adjusted survival consisting of derived (female.s.kf)
-  # and estimated (female.s.kf.est) survival to use in DRM likelihood 
-  # for females. 
-  #
-  # 'adj.female.s.kf' will have derived cumulative survival for wmu 1:4 and then
-  # estimated cumulative survival for wmu 5:610, where we do not have this info.
-  #----------------------------------------------------------#
-  # Fill storage vector with KNOWN cumulative survival in telemetered wmus
-  for (i in 1:female.telem.wmu) { # female.telem.wmu = 4 (wmus w. telemetered birds)
-    for (j in 1:4) { # 1:4 = cohort group
-      # Adult
-      adj.female.s.kf[i, 1, j] <- female.s.kf[i, 1, j] # derived cumulative survival (adult)
-      # Juvenile
-      adj.female.s.kf[i, 2, j] <- female.s.kf[i, 2, j] # derived cumulative survival (juvenile)
-    }
-  }
-  #----------------------------------------------------------#
-  # Fill storage vector with prior on cumulative survival for remaining wmus
-  for (i in 5:female.n.wmu) { # female.n.wmu = 10 (all wmus, looping to exclude first 4)
-    for (j in 1:4) { # 1:4 = cohort group
-      # Adult
-      adj.female.s.kf[i, 1, j] <- female.s.kf.est[i, 1, j] # estimated cumulative survival (adult)
-      # Juvenile
-      adj.female.s.kf[i, 2, j] <- female.s.kf.est[i, 2, j] # estimated cumulative survival (juvenile)
+      # Loop over the months between the first and last capture for each individual
+      for (m in telem.first[i]:telem.last[i]) {
+        #-------------------------------------------------------------------------X
+        # Note:
+        # Derived survival rate on the complementary log-log (cloglog) scale
+        # s.kf[i, y, m]: Survival for individual i in year y and month m
+        # telem.beta.int[1]: Intercept term: adults
+        # telem.beta.age[1]: Effect of age (juvenile) on survival
+        # telem.juvenile[i, y, m]: Indicator for juvenile status (1 if juvenile, 0 if adult)
+        # inprod(telem.beta.wmu[1:4], telem.wmu[i, 1:4]): Captures spatial random effect for WMU
+        # telem.beta.month[m]: Monthly survival effect to capture seasonal variation
+        #-------------------------------------------------------------------------X
+        
+        s.kf[i, y, m] <-  telem.beta.int[1] +   # Adult
+          telem.beta.age[1] * telem.juvenile[i, y, m] +  # Juvenile-specific effect
+          inprod(telem.beta.wmu[1:female.telem.wmu], telem.wmu[i, 1:female.telem.wmu]) +  # WMU random effect
+          telem.beta.month[m]   # Month random effect
+        
+        #-------------------------------------------------------------------------X
+        # Likelihood for survival status (0 = dead, 1 = alive) using a Bernoulli distribution
+        # The probability is the inverse complementary log-log of the survival
+        # icloglog() is appropriate when values are skewed low (towards 0) or high (towards 1)
+        #-------------------------------------------------------------------------X
+        
+        status[i, y, m] ~ dbern(prob = icloglog(s.kf[i, y, m]))
+      }
     }
   }
   
   ###########################################################X
+  # Derived Quantities: Survival over month per age and WMU ----
+  ###########################################################X
+  
+  # Initialize storage for monthly survival rates (Adult and Juvenile)
+  for (m in 1:12) {
+    # Adults, baseline WMU
+    storage[1, 1, m] <- icloglog(telem.beta.int[1] + telem.beta.wmu[1] +  telem.beta.month[m])
+    # Juveniles, baseline WMU
+    storage[1, 2, m] <- icloglog(telem.beta.int[1] + telem.beta.age[1] + telem.beta.wmu[1] +  telem.beta.month[m])
+  }
+  
+  # For WMUs beyond the first
+  for (j in 2:(female.telem.wmu)) {
+    for (m in 1:12) {
+      # Adults
+      storage[j, 1, m] <- icloglog(telem.beta.int[1] + telem.beta.wmu[j] + telem.beta.month[m])
+      # Juveniles
+      storage[j, 2, m] <- icloglog(telem.beta.int[1] + telem.beta.age[1] + telem.beta.wmu[j] + telem.beta.month[m])
+    }
+  }
+  #---------------------------------------------------------------X
+  # Calculate survival for Adults, accounting for nesting season
+  #---------------------------------------------------------------X
+  for (j in 1:female.telem.wmu) {
+    # Jan to December survival
+    avg.ad.s.kf[j] <- prod(storage[j, 1, 1:12])
+  }
+  #---------------------------------------------------------------X
+  # Calculate survival for Juvenile FEMALES transitioning to Adults in June
+  #---------------------------------------------------------------X
+  for (j in 1:female.telem.wmu) {
+    # November and December survival using Jan as a proxy
+    juvenile_part1[j] <- storage[j, 2, 1] * storage[j, 2, 1]
+    # January to May
+    juvenile_part2[j] <- prod(storage[j, 2, 1:5])
+    # June to December (aging up to adult)
+    adult_part[j] <- prod(storage[j, 1, 6:10])
+    
+    # Cumulative survival for each entry month
+    avg.juv.s.kf[j] <- (juvenile_part1[j] * juvenile_part2[j])* adult_part[j]
+  }
+  
+  #---------------------------------------------------------------X
+  # Calculate survival for Juvenile MALES surviving until Spring harvest
+  #---------------------------------------------------------------X
+  for (j in 1:male.n.wmu) {
+    # November and December survival using Jan as a proxy
+    juvenile_male_1[j] <- storage[j, 2, 1] * storage[j, 2, 1]
+    # January to April
+    juvenile_male_2[j] <- prod(storage[j, 2, 1:4])
+    
+    # Cumulative survival until Spring harvest
+    juv.male.adj[j] <- (juvenile_male_1[j] * juvenile_male_2[j])
+  }
+  
+  ##########################################################X
   #----------------------------------------------------------#
   # Dead Recovery model for each sex ----
   ###########################################################X
   # DRM: Female model ----
   ###########################################################X
   #----------------------------------------------------------#
-  # Dead Recovery model: Priors on age and wmu 
-  #----------------------------------------------------------#
-  # Reporting rates:
-  # Note:
-  ## We don't have an informative prior like we use for males for females, so 
-  ## we want a vague prior on reporting rates
-  female.rrate.j ~ dunif(0,1)
-  female.rrate.a ~ dunif(0,1)
-  #----------------------------------------------------------#
-  
-  # Proportion mortality due to hunting (Seber parameterization: (1-s)r)
-  female.seber.recov[1] ~ dunif(0,1) # Prior for proportion mortality due to hunting - juveniles
-  female.seber.recov[2] ~ dunif(0,1) # Prior for proportion of mortality due to hunting - adults
-  
-  #----------------------------------------------------------#
-  
-  # Prior on juvenile effect on survival
-  female.juvenile.effect ~ dnorm(0, sd = 0.5)        
-  #----------------------------------------------------------#
-  # Prior on time effect     
-  for (t in 1:(true.occasions)) {   
-    female.time.effect[t] ~ dnorm(0, sd = 0.5)             
-  }
-  #----------------------------------------------------------#
-  ## Random effect of wmu
-  female.sigma ~ dunif(0,10)
-  for (i in 1:10) {
-    female.wmu.effect[i] ~ dnorm(0, sd = female.sigma)
-  }
-  
-  #----------------------------------------------------------#
-  # Survival and Recovery rate
-  for (i in 1:female.nind) {
-    for (t in female.f[i]:(true.occasions)) {
-      ### juvenile.effect is age (juv) coefficient, time.effect is time coefficient 
-      logit(female.s[i,t]) <- female.juvenile.effect*female.I[i,t] + 
-        inprod(female.time.effect[1:4], female.time.param[t, 1:4]) + 
-        female.wmu.effect[female.wmu[i]] 
-      ###########################################################X
-      # Note:
-      ### the four terms in r[i,t] represent: juvenile non-reward bands, 
-      ### juvenile reward bands, adult non-reward bands, adult reward band
-      ### the indicators I[] (juvenile=1) and II[] (reward = 0) 
-      ### simply retain/cancel the appropriate terms
-      ###########################################################X
-      # Intermediate variables for r[i,t] rates 
-      female.juvenile.hunting[i, t] <- female.seber.recov[1] * female.I[i, t] * female.rrate.j * female.II[i] + 
-        female.seber.recov[1] * female.I[i, t] * (1 - female.II[i])
-      female.adult.hunting[i, t] <- female.seber.recov[2] * (1 - female.I[i, t]) * female.rrate.a * female.II[i] + 
-        female.seber.recov[2] * (1 - female.I[i, t]) * (1 - female.II[i])
-      #----------------------------------------------------------#
-      # Recovery rate w. Seber parameterization ((1-s)r)
-      female.r[i,t] <- female.juvenile.hunting[i, t] + female.adult.hunting[i, t]
-      #----------------------------------------------------------#
-    } #t
-  } #i
-  
-  ###########################################################X
-  # DRM: Derived Estimates
-  ###########################################################X
-  #----------------------------------------------------------#
-  # DRM: Derived survival rate estimates
-  #----------------------------------------------------------#
-  for (t in 1:(true.occasions)) {   
-    logit(female.mean.s.ad[t]) <- female.time.effect[t]  
-    logit(female.mean.s.jv[t]) <- female.time.effect[t] + female.juvenile.effect  
-    
-    
-    #----------------------------------------------------------#
-    # DRM: Derived harvest rate estimates
-    #----------------------------------------------------------#
-    female.mean.harv.jv[t] <- (1-female.mean.s.jv[t])*female.seber.recov[1]
-    female.mean.harv.ad[t] <- (1-female.mean.s.ad[t])*female.seber.recov[2]
-  }
-  
-  #----------------------------------------------------------#
-  # DRM: WMU survival rates
-  #----------------------------------------------------------#
-  for (t in 1:(true.occasions)) {
-    for (u in 1:female.n.wmu) {
-      logit(female.s.ad.wmu[t,u]) <-  female.time.effect[t] + female.wmu.effect[u]  
-      logit(female.s.juv.wmu[t,u]) <- female.juvenile.effect + 
-        # I don't like this hard coding, need to find nimble work-around
-        inprod(female.time.effect[1:4], female.time.param[t, 1:4]) +  
-        female.wmu.effect[u] 
-    }#g
-  }#t
-  
-  #----------------------------------------------------------#
   # DRM: WMU harvest rates
   #----------------------------------------------------------#
-  for (t in 1:(true.occasions)) {
-    for (g in 1:female.n.wmu) {
-      female.h.juv.wmu[t,g] <- (1-female.s.juv.wmu[t,g])*female.seber.recov[1] 
-      female.h.ad.wmu[t,g] <- (1-female.s.ad.wmu[t,g])*female.seber.recov[2]
-    }#g
-  }#t
-  
+  # Note: female.n.occasions-1 is done to match the notation for
+  # my male DRM. See note in the male DRM likelihood for more info.
   #----------------------------------------------------------#
-  # DRM: Likelihood (Females) ----
-  #----------------------------------------------------------#
-  for (i in 1:female.nind){
-    # Define latent state at first capture
-    female.z[i,female.f[i]] <- 1
-    for (t in (female.f[i]+1):female.n.occasions){ # true.occasions + 1 b.c they're dead
-      #------------------------#
-      # State process
-      female.z[i,t] ~ dbern(female.mu1[i,t])
-      
-      # For the first year the female enters the study (female.f.kf), multiply 
-      # DRM survival probability (female.s) by known-fate survival 
-      # probability (adj.female.s.kf)
-      
-      # Note: female.age is a vector of 1, 2=Juvenile for indexing purposes based on
-      # age at capture. The juvenile to adult age change June 1 is captured in the derived calculation
-      # for 'adj.female.s.kf' above (see 'Cumulative survival per age, wmu, and 'cohort'')
-      
-      female.mu1[i,t] <- female.f.kf[i,t-1]*adj.female.s.kf[female.wmu.index[i],
-                                                            female.age[i], tagging.cohort[i]]*female.s[i,t-1]+
-        (1-female.f.kf[i,t-1])*female.s[i,t-1] * female.z[i,t-1]
-      #------------------------#
-      # Observation process
-      female.y[i,t] ~ dbern(female.mu2[i,t])
-      female.mu2[i,t] <- female.r[i,t-1] * (female.z[i,t-1] - female.z[i,t])
-    } #t
-  } #i
+  for (t in 1:(female.n.occasions-1)) {
+    for (u in 1:female.n.wmu) {
+      female.h.ad.wmu[t, u] ~ dbeta(shape1 = 2, shape2 = 50)
+      female.h.juv.wmu[t,u] ~ dbeta(shape1 = 2, shape2 = 50)
+    } #u
+  } #t
   
   ###########################################################X
   # DRM: Male model ----
@@ -350,60 +262,64 @@ drm_kf_rec <- nimbleCode({
   # Dead Recovery model: Priors on age and wmu 
   #----------------------------------------------------------#
   ###########################################################X
+  
   # Reporting rates
   ### Informative priors for hunter reporting rates based on Diefenbach et al. (2012)
   male.rrate.j ~ dnorm(0.71, sd = 0.072) #  non-reward bands for juveniles
   male.rrate.a ~ dnorm(0.87, sd = 0.039) #  non-reward bands for adults
+  
   #----------------------------------------------------------#
   # Proportion mortality due to hunting (Seber parameterization: (1-s)r)
   male.seber.recov[1] ~ dunif(0, 1)   # Prior for proportion mortality due to hunting - juveniles
-  male.seber.recov[2] ~ dunif(0,1)    # Prior for proportion of mortality due to hunting - adults
+  male.seber.recov[2] ~ dunif(0, 1)   # Prior for proportion of mortality due to hunting - adults
   
   #----------------------------------------------------------#
+  
   # Prior on juvenile effect on survival
   male.juvenile.effect ~ dnorm(0, sd = 0.5)        
+  
   #----------------------------------------------------------#
+  
   # Prior on time effect     
   for (t in 1:(male.n.occasions-1)) {   
     male.time.effect[t] ~ dnorm(0, sd = 0.5)             
   }
   
   #----------------------------------------------------------#
-  ## Random effect of wmu
+  
+  # Random effect of wmu
   male.sigma ~ dunif(0,10)
   for (i in 1:10) {
     male.wmu.effect[i] ~ dnorm(0, sd = male.sigma)
   }
   
   #----------------------------------------------------------#
+  
   # Survival and Recovery rate
   for (i in 1:male.nind) {
-    for (t in male.f[i]:(true.occasions)) {
-      ###########################################################X
+    for (t in male.f[i]:(male.n.occasions-1)) {
+      
+      #----------------------------------------------------------#
       # Note:
-      ### juvenile.effect is age (juv) coefficient, time.effect is time coefficient 
-      ###########################################################X
+      # juvenile.effect is age (juv) coefficient, time.effect is time coefficient 
+      #----------------------------------------------------------#
+      
       logit(male.s[i,t]) <- male.juvenile.effect*male.I[i,t] + 
-        # Hate this hard coding - need to find nimble work-around
         inprod(male.time.effect[1:4], male.time.param[t, 1:4]) + 
         male.wmu.effect[male.wmu[i]] 
+      
       #----------------------------------------------------------#
-      ###########################################################X
       # Note: 
-      ### the four terms in r[i,t] represent: juvenile non-reward bands, 
-      ### juvenile reward bands, adult non-reward bands, adult reward band
-      ### the indicators I[] (juvenile=1) and II[] (reward = 0) 
-      ### simply retain/cancel the appropriate terms
-      ###########################################################X
-      # Intermediate variables for r[i,t] rates 
-      male.juvenile.hunting[i, t] <- male.seber.recov[1] * male.I[i, t] * male.rrate.j * male.II[i] + 
-        male.seber.recov[1] * male.I[i, t] * (1 - male.II[i])
-      male.adult.hunting[i, t] <- male.seber.recov[2] * (1 - male.I[i, t]) * male.rrate.a * male.II[i] + 
+      # the four terms in r[i,t] represent: juvenile non-reward bands, 
+      # juvenile reward bands, adult non-reward bands, adult reward band
+      # the indicators I[] (juvenile=1) and II[] (reward = 0) 
+      # simply retain/cancel the appropriate terms
+      #----------------------------------------------------------#
+      # Reporting rate w. Seber parameterization: ((1-s)r)
+      male.r[i,t] <- male.seber.recov[1] * male.I[i, t] * male.rrate.j * male.II[i] + 
+        male.seber.recov[1] * male.I[i, t] * (1 - male.II[i]) + male.seber.recov[2] * (1 - male.I[i, t]) * male.rrate.a * male.II[i] + 
         male.seber.recov[2] * (1 - male.I[i, t]) * (1 - male.II[i])
-      #----------------------------------------------------------#
-      # Recovery rate w. Seber parameterization: ((1-s)r)
-      male.r[i,t] <- male.juvenile.hunting[i, t] + male.adult.hunting[i, t]
-      #----------------------------------------------------------#
+      
     } #t
   } #i
   
@@ -411,52 +327,55 @@ drm_kf_rec <- nimbleCode({
   # DRM: Derived Estimates
   ###########################################################X
   #----------------------------------------------------------#
-  # DRM: Derived survival rate estimates
-  #----------------------------------------------------------#
-  for (t in 1:(true.occasions)) {   
-    logit(male.mean.s.ad[t]) <- male.time.effect[t]  
-    logit(male.mean.s.jv[t]) <- male.time.effect[t] + male.juvenile.effect  
-    
-    #----------------------------------------------------------#
-    # DRM: Derivedharvest rate estimates
-    #----------------------------------------------------------#
-    male.mean.harv.jv[t] <- (1-male.mean.s.jv[t])*male.seber.recov[1]
-    male.mean.harv.ad[t] <- (1-male.mean.s.ad[t])*male.seber.recov[2]
-  }
-  
-  #----------------------------------------------------------#
   # DRM: WMU survival rates
   #----------------------------------------------------------#
-  for (t in 1:(true.occasions)) {
+  # Survival from 2020-2023
+  for (t in 1:(male.n.occasions-1)) {
     for (u in 1:male.n.wmu) {
-      logit(male.s.ad.wmu[t,u]) <-  male.time.effect[t] + male.wmu.effect[u]  
+      # Juvenile
       logit(male.s.juv.wmu[t,u]) <- male.juvenile.effect + 
         inprod(male.time.effect[1:4], male.time.param[t, 1:4]) + male.wmu.effect[u] 
-    }#g
-  }#t
+      
+      # Adult
+      logit(male.s.ad.wmu[t,u]) <- inprod(male.time.effect[1:4], male.time.param[t, 1:4]) + male.wmu.effect[u]
+    } #u
+  } #t
   
   #----------------------------------------------------------#
   # DRM: WMU harvest rates
   #----------------------------------------------------------#
-  for (t in 1:(true.occasions)) {
-    for (g in 1:male.n.wmu) {
-      male.h.juv.wmu[t,g] <- (1-male.s.juv.wmu[t,g])*male.seber.recov[1] 
-      male.h.ad.wmu[t,g] <- (1-male.s.ad.wmu[t,g])*male.seber.recov[2]
-    }#g
-  }#t
+  # Harvest rates from 2020-2023
+  for (t in 1:(male.n.occasions-1)) {
+    for (u in 1:male.n.wmu) {
+      # Juvenile
+      male.h.juv.wmu[t,u] <- (1-male.s.juv.wmu[t,u])*male.seber.recov[1] 
+      
+      # Adult
+      male.h.ad.wmu[t,u] <- (1-male.s.ad.wmu[t,u])*male.seber.recov[2]
+    } #u
+  } #t
   
   #----------------------------------------------------------#
   # DRM: Likelihood (Males) ----
   #----------------------------------------------------------#
+  # Note: male.n.occasion here is 5, which is set so that my first year for 
+  # z is 1, when all my initial individuals were alive.
+  # For more clarification, see Kery and Schaub: 
+  # "Bayesian Population Analysis using WinBUGS: A Hierarchical Perspective."
+  #----------------------------------------------------------#
+  
   for (i in 1:male.nind){
     # Define latent state at first capture
     male.z[i,male.f[i]] <- 1 
-    for (t in (male.f[i]+1):male.n.occasions){ # true.occasions + 1 b.c they're dead
+    for (t in (male.f[i]+1):male.n.occasions){ 
+      
       #------------------------#
+      
       # State process
       male.z[i,t] ~ dbern(male.mu1[i,t])
       male.mu1[i,t] <- male.s[i,t-1] * male.z[i,t-1]
       #------------------------#
+      
       # Observation process
       male.y[i,t] ~ dbern(male.mu2[i,t])
       male.mu2[i,t] <- male.r[i,t-1] * (male.z[i,t-1] - male.z[i,t])

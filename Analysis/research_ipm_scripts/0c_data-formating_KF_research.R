@@ -155,7 +155,7 @@ kf_data <- list(
 )
 
 # Define a directory where you want to save the RDS files
-output_dir <- "Data/Research_IPM_setup-data/KF_data_new23/"
+output_dir <- "Data/Research_IPM_setup-data/kf_data_22-23/"
 
 # Loop through the list and save each variable as a separate RDS file
 for (var_name in names(kf_data)) {

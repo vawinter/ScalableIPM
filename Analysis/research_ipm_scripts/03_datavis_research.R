@@ -20,22 +20,24 @@ library(knitr)
 library(ggridges)
 library(reshape2)
 library(patchwork)
-selected_dir <- "Datavis/TEST/"
 
-type = "TEST/R_23NoAbun24kf"
+selected_dir <- "Datavis/"
+
+type = "TEST/20251108_R_IPM_run23"
 # Load data 
 kf_survival_df <- readRDS(paste0("Data/Output/", type, "_kf-survival_summary.rds"))
-drm_harvest_df <- readRDS(paste0("Data/Output/", type, "_kf-survival_summary.rds"))
-abundance_df <- readRDS(paste0("Data/Output/", type, "_kf-survival_summary.rds"))
-drm_survival_df <- readRDS(paste0("Data/Output/", type, "_kf-survival_summary.rds"))
-combined_survival_df <- readRDS(paste0("Data/Output/", type, "_kf-survival_summary.rds"))
-ppb <- readRDS(paste0("Data/Output/", type, "_kf-survival_summary.rds"))
-hwb <- readRDS(paste0("Data/Output/", type, "_kf-survival_summary.rds"))
-rec <- readRDS(paste0("Data/Output/", type, "_kf-survival_summary.rds"))
+drm_harvest_df <- readRDS(paste0("Data/Output/", type, "_harvest_summary.rds"))
+comb_survival_df <- readRDS(paste0("Data/Output/", type, "_comb-survival_summary.rds"))
+abundance_df <- readRDS(paste0("Data/Output/", type, "_abundance_summary.rds"))
+drm_survival_df <- readRDS(paste0("Data/Output/", type, "_drm_survival_summary.rds"))
+ppb <- readRDS(paste0("Data/Output/", type, "_ppb_summary.rds"))
+hwb <- readRDS(paste0("Data/Output/", type, "_hwb_summary.rds"))
+rec <- readRDS(paste0("Data/Output/", type, "_rec_summary.rds"))
 
 # Harvest
 # Load in WMU areas
-wmu_areas <- readRDS("Data/wmu_areas_km.rds")
+wmu_areas <- readRDS("Data/wmu_areas_km.rds") %>% 
+  mutate(WMU_ID = paste("WMU", WMU_ID, sep = " "))
 
 # Format harvest data
 dat <- read.csv("Data/FallSprHarvData.csv", header=T)
@@ -57,6 +59,7 @@ wmu_spring_adult <- spring %>%
   reframe(wmu_count = sum(count)) %>% 
   filter(age == "gobbler",
          WMU.Group %in% c("2D", "3D", "4D")) %>% 
+  mutate(WMU.Group = paste("WMU", WMU.Group, sep = " ")) %>% 
   dplyr:: select(year, WMU.Group, wmu_count, age) %>% 
   as.data.frame()
 
@@ -66,6 +69,7 @@ wmu_spring_juv <- spring %>%
   reframe(wmu_count = sum(count)) %>% 
   filter(age == "jake",    
          WMU.Group %in% c("2D", "3D", "4D")) %>% 
+  mutate(WMU.Group = paste("WMU", WMU.Group, sep = " ")) %>% 
   dplyr::select(year, WMU.Group, wmu_count, age) %>% 
   as.data.frame()
 
@@ -76,6 +80,7 @@ wmu_fall_adult <- fall %>%
   reframe(wmu_count = sum(count))%>% 
   filter(age == "hen",
          WMU.Group %in% c("2D", "3D", "4D")) %>%  
+  mutate(WMU.Group = paste("WMU", WMU.Group, sep = " ")) %>% 
   dplyr::select(year, WMU.Group, wmu_count, age) %>% 
   as.data.frame()
 
@@ -86,6 +91,7 @@ wmu_fall_juv <- fall %>%
   reframe(wmu_count = sum(count))%>% 
   filter(!age == "hen",
          WMU.Group %in% c("2D", "3D", "4D")) %>% 
+  mutate(WMU.Group = paste("WMU", WMU.Group, sep = " ")) %>% 
   dplyr::select(year, WMU.Group, wmu_count, age) %>% 
   as.data.frame()
 
@@ -111,7 +117,7 @@ Harvest <- harvest %>%
     )
   ) %>% 
   left_join(wmu_areas, by = c("WMU.Group" = "WMU_ID")) %>% 
-  filter(!year %in% c(2019, 2024)) 
+  filter(!year %in% c(2019, 2024), age != "ALL") 
 
 
 # Structure abundance df
@@ -158,9 +164,13 @@ ext_colors <- c(
   "4D" = "#C74442" # sienna3
 )
 
+wmu_col <- c("WMU 2D" = "#0f4c5d", 
+         "WMU 3D" = "#043A70", 
+         "WMU 4D" = "goldenrod")
+
 # Filter too remove 5C survival estimate
-combined_survival_df <- combined_survival_df %>% filter(wmu != "5C")
-drm_harvest_df <- drm_harvest_df %>% filter(wmu != "5C")
+combined_survival_df <- comb_survival_df %>% filter(wmu != "WMU 5C")
+#drm_harvest_df <- drm_harvest_df %>% filter(wmu != "5C")
 
 # Structure abundance df
 # Summarize data for total males, total females, and overall totals
@@ -196,7 +206,13 @@ harvest_plot <- ggplot(drm_harvest_df, aes(y = median_value, x = year,
   geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), 
                 width = 0.3, 
                 position = position_dodge(width = 0.5), show.legend = F) +
-  facet_wrap(~wmu, ncol = 3) +
+  facet_wrap(~wmu, ncol = 3,
+              # strip = strip_themed(
+              #   background_x = elem_list_rect(fill = c("WMU 2D" = "#0f4c5d", 
+              #                                          "WMU 3D" = "#043A70", 
+              #                                          "WMU 4D" = "goldenrod"))
+              # )
+             ) +
   
   # Assign shapes to sex: female and male
   scale_shape_manual(values = c("Female" = 16, "Male" = 17)) +
@@ -221,10 +237,9 @@ harvest_plot <- ggplot(drm_harvest_df, aes(y = median_value, x = year,
   theme(
     text = element_text(size = 18),           # Increase the base text size
     axis.title = element_text(size = 18),     # Increase axis title size
-    axis.text = element_text(size = 18),      # Increase axis text (ticks) size
+    axis.text.x = element_blank(),      # Increase axis text (ticks) size
     strip.text = element_text(size = 18),     # Increase facet label text size
     legend.title = element_text(size = 18, face = "bold"),   # Customize legend title text
-   # legend.text = element_text(18),    # Customize legend item text
     legend.position = "top",                # Position the legend
     legend.key = element_rect(fill = "white"),  # Customize legend key appearance
     legend.key.size = unit(1.5, "lines"),      # Adjust size of legend keys (shapes)
@@ -257,7 +272,7 @@ survival_plot <- ggplot(combined_survival_df, aes(y = median_value, x = year,
   guides(color = "none") +
   
   # X-axis adjustments
-  scale_x_continuous(breaks = c(1, 2, 3, 4), labels = c("2020", "2021", "2022", "2023")) +
+  scale_x_continuous(breaks = c(1, 2, 3, 4, 5), labels = c("2020", "2021", "2022", "2023", "2024")) +
   
   # Y-axis limits for survival probabilities
   scale_y_continuous(limits = c(0, 1)) +  
@@ -284,7 +299,7 @@ survival_plot <- ggplot(combined_survival_df, aes(y = median_value, x = year,
 plot <- harvest_plot/survival_plot
 
 ### Save the harv/den ----
-ggsave(paste0(selected_dir, "R_23NoAbun23kf_IPM_plot.png"), plot = plot, width = 15, height = 10, dpi = 700)
+ggsave(paste0(selected_dir, type, "_IPM_plot.png"), plot = plot, width = 15, height = 10, dpi = 700)
 ggsave("Manuscript/complex_3D-surv.png", plot = plot, width = 10, height = 10, dpi = 700)
 
 
@@ -294,7 +309,13 @@ abundance_plot <- ggplot(abundance_df_overall, aes(y = median_value / area_sq_km
   geom_point(size = 4, position = position_dodge(width = 0.5)) +
   geom_errorbar(aes(ymin = lower_ci/area_sq_km, ymax = upper_ci/area_sq_km), 
                 width = 0.3, position = position_dodge(width = 0.5), show.legend = F) +
-  facet_wrap(~wmu, ncol = 3) +  # Use custom labeller
+  facet_wrap(~wmu, ncol = 3,
+              # strip = strip_themed(
+              #   background_x = elem_list_rect(fill = c("WMU 2D" = "#0f4c5d", 
+              #                                          "WMU 3D" = "#043A70", 
+              #                                          "WMU 4D" = "goldenrod"))
+              # )
+              ) +
   
   # Custom shapes and colors for sex
   scale_shape_manual(values = c("Female" = 16, "Male" = 17, "Total" = 8)) + 
@@ -304,25 +325,23 @@ abundance_plot <- ggplot(abundance_df_overall, aes(y = median_value / area_sq_km
     "Total"   = "#6F6534"
   )) +
 
+  ylim(0, 10)+
   scale_x_continuous(breaks = c(1, 2, 3, 4), labels = c("2020", "2021", "2022", "2023")) +
- # scale_y_continuous(breaks = c(1:8)) +
 
   labs(x = "Year", y = expression('Abundance/km'^2*''), shape = "", color = "") +  # Modify legend title
   
  # Combine the shape and color legends
   guides(color = guide_legend(override.aes = list(shape = c(16, 17, 8))),  # Override shapes in the color legend
          shape = guide_none()) +  # Hide the separate shape legend
- #  ylim(0, 3) +
-  # # Combine the shape and color legends
-  # guides(color = guide_none(),  # Override shapes in the color legend
-  #        shape = guide_none()) +  # Hide the separate shape legend
+
   annotate("segment", x = Inf, xend = Inf, y = -Inf, yend = Inf, color = "black", linetype = "dashed") +
   theme_classic() +
   theme(
     text = element_text(size = 20),
     axis.title = element_text(size = 18),
     axis.text = element_text(size = 18),
- #   strip.text = element_blank(),      # Remove WMU labels
+    strip.text = element_text(size = 18,
+                               color = "black"),     
     legend.title = element_text(size = 18, face = "bold"),
     legend.text = element_text(size = 18),
     legend.position = "top",
@@ -333,46 +352,50 @@ abundance_plot <- ggplot(abundance_df_overall, aes(y = median_value / area_sq_km
 
 
 ### Save abudnance ----
-ggsave(paste0(selected_dir, "R_abun_plot.png"), plot = abundance_plot, width = 15, height = 10, dpi = 700)
+ggsave(paste0(selected_dir,type, "_abun_plot_classes.png"), plot = abundance_plot, width = 15, height = 10, dpi = 700)
 
 # age class abundance:
 ## Abundance Plot ----
-abundance_plot <- ggplot(abundance_df, aes(y = median_value / area_sq_km, x = year, shape = sex, color = sex)) +
+abundance_plot <- ggplot(abundance_df, aes(y = median_value / area_sq_km, x = year, shape = sex, 
+                                           color = interaction(age_class, sex, sep = " "))) +
   geom_point(size = 4, position = position_dodge(width = 0.5)) +
   geom_errorbar(aes(ymin = lower_ci/area_sq_km, ymax = upper_ci/area_sq_km), 
-                width = 0.3, position = position_dodge(width = 0.5), show_guide = F) +
-  facet_wrap(~wmu, ncol = 3) +  # Use custom labeller
+                width = 0.3, position = position_dodge(width = 0.5), show.legend = F) +
+  facet_wrap(~wmu, ncol = 3
+             # strip = strip_themed(
+             #   background_x = elem_list_rect(fill = c("WMU 2D" = "#0f4c5d", 
+             #                                          "WMU 3D" = "#043A70", 
+             #                                          "WMU 4D" = "goldenrod"))
+             #)
+  ) +
   
   # Custom shapes and colors for sex
- # Use the same colors from the harvest plot for "adult male" and "juvenile male"
+  # Use the same colors from the harvest plot for "adult male" and "juvenile male"
   scale_color_manual(values = c(
     "Adult Female"    = "#7A370A",
     "Juvenile Female" = "#EB781B",
     "Adult Male"      = "#043A50",
     "Juvenile Male"   = "#5C7391"
-    )) +
+  )) +
   annotate("segment", x = Inf, xend = Inf, y = -Inf, yend = Inf, color = "black", linetype = "dashed") +
-    # Shapes for juvenile and adult (keeping the same shapes as before)
+  # Shapes for juvenile and adult (keeping the same shapes as before)
   scale_shape_manual(values = c("Female" = 16, "Male" = 17)) +
   
   # Remove shape legend using guides()
   guides(shape = "none") +
   guides(color = "none") +
-  scale_x_continuous(breaks = c(1, 2, 3, 4), labels = c("2020", "2021", "2022", "2023")) +
-  # scale_y_continuous(breaks = c(1:8)) +
+  scale_x_continuous(breaks = c(1, 2, 3, 4, 5), labels = c("2020", "2021", "2022", "2023", "2024")) +
+  ylim(0, 4) +
   
   labs(x = "Year", y = "Abundance per sq. km", shape = "", color = "") +  # Modify legend title
   
-  # Combine the shape and color legends
-  guides(color = guide_legend(override.aes = list(shape = c(16, 17, 8))),  # Override shapes in the color legend
-         shape = guide_none()) +  # Hide the separate shape legend
   annotate("segment", x = Inf, xend = Inf, y = -Inf, yend = Inf, color = "black", linetype = "dashed") +
   theme_classic() +
   theme(
     text = element_text(size = 16),
     axis.title = element_text(size = 16),
     axis.text = element_text(size = 16),
-    #   strip.text = element_blank(),      # Remove WMU labels
+    strip.text = element_text(size = 18),      # Remove WMU labels
     legend.title = element_text(size = 16, face = "bold"),
     legend.text = element_text(size = 16),
     legend.position = "top",
@@ -380,6 +403,7 @@ abundance_plot <- ggplot(abundance_df, aes(y = median_value / area_sq_km, x = ye
     legend.key.size = unit(1.5, "lines"),
     axis.text.x = element_text(angle = 45, hjust = 1)
   )
+
 
 
 ## Harvest density ----
@@ -421,8 +445,8 @@ harvest_den_plot <- ggplot(harvest_df_overall, aes(y = median_value/area_sq_km, 
     legend.position = "top",                # Position the legend
     legend.key = element_rect(fill = "white"),  # Customize legend key appearance
     legend.key.size = unit(1.5, "lines") ,     # Adjust size of legend keys (shapes)
-    axis.title.x = element_blank(),    # Remove x-axis title
-    axis.text.x = element_blank()       # Remove x-axis text
+    axis.title.x = element_blank()#,    # Remove x-axis title
+   # axis.text.x = element_blank()       # Remove x-axis text
   )
 
 ## Abundance Plot ----
@@ -468,7 +492,7 @@ abundance_plot <- ggplot(abundance_df_overall, aes(y = median_value / area_sq_km
 plot2 <- harvest_den_plot/abundance_plot
 
 ### Save the harv/den ----
-ggsave(paste0(selected_dir, "Full_abun-harv_plot.png"), plot = plot2, width = 15, height = 9, dpi = 700)
+ggsave(paste0(selected_dir,type, "_harv_plot.png"), plot = harvest_den_plot, width = 15, height = 9, dpi = 700)
 
 ## KF Survival Plot ----
 kf_survival_plot <- ggplot(kf_survival_df, aes(y = median_value, x = wmu, 
@@ -476,16 +500,17 @@ kf_survival_plot <- ggplot(kf_survival_df, aes(y = median_value, x = wmu,
   geom_point(size = 4, position = position_dodge(width = 0.5)) +
   geom_errorbar(aes(ymin = lower_ci, ymax = upper_ci), 
                 width = 0.3, 
-                position = position_dodge(width = 0.5), show_guide = F) + 
+                position = position_dodge(width = 0.5), show.legend = F) + 
   
   # Match colors for females as per the harvest plot
   scale_color_manual(values = c(
     "Adult Female"    = "#71250F",  # Color for adult female
-    "Juvenile Female" = "#EB781B"  # Color for juvenile female
+    "Juvenile Female" = "#EB781B",  # Color for juvenile female
+    "Juvenile Male"   = "#5C7391"
   )) +
 
   # Set shapes for age class (as you did before)
-  scale_shape_manual(values = c("Female" = 16)) +
+  scale_shape_manual(values = c("Female" = 16,"Male" = 17)) +
   
   # Remove shape legend using guides()
   guides(shape = "none") +
@@ -494,7 +519,7 @@ kf_survival_plot <- ggplot(kf_survival_df, aes(y = median_value, x = wmu,
   scale_y_continuous(limits = c(0, 1)) +
   
   # Labels for axes and legend
-  labs(x = "WMU", y = "Survival probability", shape = "", color = "") +
+  labs(x = "WMU", y = "Survival probability", shape = "", color = "", title = "22-24 No Abundance") +
   
   # Keep consistent theme
   theme_classic() +
@@ -511,29 +536,28 @@ kf_survival_plot <- ggplot(kf_survival_df, aes(y = median_value, x = wmu,
   )
 
 ## Recruitment Plot ----
-recruitment_plot <- ggplot(rec, aes(y = density_value, x = year, shape = wmu, color = wmu)) +
+recruitment_plot <- ggplot(rec2, aes(y = median_value/area_sq_km, x = year, shape = wmu, color = wmu)) +
   geom_point(size = 4, position = position_dodge(width = 0.5)) +
   geom_errorbar(aes(ymin = lower_ci/area_sq_km , ymax = upper_ci/area_sq_km ), width = 0.3,
-                position = position_dodge(width = 0.5), show_guide = F) +
+                position = position_dodge(width = 0.5), show.legend = F) +
   
   # Custom shapes for WMUs
-  scale_shape_manual(values = c("2D" = 18, "3D" = 20, "4D" = 15)) +
+  scale_shape_manual(values = c("WMU 2D" = 18, "WMU 3D" = 20, "WMU 4D" = 15)) +
   
   # Custom colors for WMUs
-  scale_color_manual(values = c(  "2D" = "orange", # indianred4
-                                  "3D" = "#043A50", # goldenrod
-                                  "4D" = "#C74442")) +
-  
+  scale_color_manual(values = c("WMU 2D" = "#0f4c5d", 
+                                "WMU 3D" = "#043A70", 
+                                "WMU 4D" = "goldenrod")) +
   # Y-axis with nice breaks
-  scale_y_continuous(breaks = scales::pretty_breaks(n = 8)) +
+ # scale_y_continuous(breaks = scales::pretty_breaks(n = 8)) +
   
   # X-axis labels for years
-  scale_x_discrete(limits = c(1, 2, 3, 4), labels = c("2020", "2021", "2022", "2023")) +
+  scale_x_discrete(limits = factor(c(1, 2, 3, 4)), labels = c("2020", "2021", "2022", "2023")) +
   
   # Axis labels and legend title
   labs(x = "Year", y = "Recruitment per sq. km", shape = "", color = "") +
   
-  
+  ylim(0, 3) +
   # Consistent theme
   theme_classic() +
   theme(
@@ -551,6 +575,76 @@ recruitment_plot <- ggplot(rec, aes(y = density_value, x = year, shape = wmu, co
 
 
 ### Save the survival/rec ----
-ggsave("Datavis/R_kf_survival_plot.png", plot = kf_survival_plot,  width = 8, height = 6, dpi = 700)
-ggsave("Datavis/R_rec_plot.png", plot = recruitment_plot, width = 8, height = 7, dpi = 700)
+ggsave(paste0(selected_dir, type, "_kf_survival_plot.png"), plot = kf_survival_plot,  width = 8, height = 6, dpi = 700)
+ggsave(paste0(selected_dir, type, "_rec_plot.png"), plot = recruitment_plot, width = 8, height = 7, dpi = 700)
 
+#PPB and HWB
+
+ ppb_plot <-  ggplot(ppb, aes(y = median_value, x = year, shape = wmu, color = wmu)) +
+    geom_point(size = 4, position = position_dodge(width = 0.5)) +
+    geom_errorbar(aes(ymin = lower_ci , ymax = upper_ci ), width = 0.3,
+                  position = position_dodge(width = 0.5), show.legend = T) +
+    
+    # Custom shapes for WMUs
+    scale_shape_manual(values = c("WMU 2D" = 18, "WMU 3D" = 20, "WMU 4D" = 15)) +
+    
+    # Custom colors for WMUs
+    scale_color_manual(values = c("WMU 2D" = "#0f4c5d", 
+                                  "WMU 3D" = "#043A70", 
+                                  "WMU 4D" = "goldenrod")) +
+    # X-axis labels for years
+    scale_x_discrete(limits = factor(c(1, 2, 3, 4)), labels = c("2020", "2021", "2022", "2023")) +
+    
+    # Axis labels and legend title
+    labs(x = "Year", y = "Poults per brood", shape = "", color = "") +
+    ylim(2.5, 4) +
+    # Consistent theme
+    theme_classic() +
+    theme(
+      text = element_text(size = 16),           # Increase base text size
+      axis.title = element_text(size = 16),     # Increase axis title size
+      axis.text = element_text(size = 16),      # Increase axis text (ticks) size
+      strip.text = element_text(size = 16),     # Increase facet label text size
+      legend.title = element_text(size = 16, face = "bold"),   # Customize legend title text
+      legend.text = element_text(size = 16),    # Customize legend item text
+      legend.position = "top",                # Position the legend
+      legend.key = element_rect(fill = "white"),  # Customize legend key appearance
+      legend.key.size = unit(1.5, "lines"),      # Adjust size of legend keys (shapes)
+      axis.text.x = element_text(angle = 45, hjust = 1)
+    )
+ggsave(paste0(selected_dir, type, "_ppb_plot.png"), plot = ppb_plot,  width = 8, height = 6, dpi = 700) 
+
+hwb_plot <-  ggplot(hwb, aes(y = median_value, x = year, shape = wmu, color = wmu)) +
+   geom_point(size = 4, position = position_dodge(width = 0.5)) +
+   geom_errorbar(aes(ymin = lower_ci , ymax = upper_ci ), width = 0.3,
+                 position = position_dodge(width = 0.5), show.legend = T) +
+   
+   # Custom shapes for WMUs
+   scale_shape_manual(values = c("WMU 2D" = 18, "WMU 3D" = 20, "WMU 4D" = 15)) +
+   
+   # Custom colors for WMUs
+   scale_color_manual(values = c("WMU 2D" = "#0f4c5d", 
+                                 "WMU 3D" = "#043A70", 
+                                 "WMU 4D" = "goldenrod")) +
+   # X-axis labels for years
+   scale_x_discrete(limits = factor(c(1, 2, 3, 4)), labels = c("2020", "2021", "2022", "2023")) +
+   
+   # Axis labels and legend title
+   labs(x = "Year", y = "Hens with a brood", shape = "", color = "") +
+   ylim(0.5, 1) +
+   # Consistent theme
+   theme_classic() +
+   theme(
+     text = element_text(size = 16),           # Increase base text size
+     axis.title = element_text(size = 16),     # Increase axis title size
+     axis.text = element_text(size = 16),      # Increase axis text (ticks) size
+     strip.text = element_text(size = 16),     # Increase facet label text size
+     legend.title = element_text(size = 16, face = "bold"),   # Customize legend title text
+     legend.text = element_text(size = 16),    # Customize legend item text
+     legend.position = "top",                # Position the legend
+     legend.key = element_rect(fill = "white"),  # Customize legend key appearance
+     legend.key.size = unit(1.5, "lines"),      # Adjust size of legend keys (shapes)
+     axis.text.x = element_text(angle = 45, hjust = 1)
+   )
+ 
+ggsave(paste0(selected_dir, type, "_hwb_plot.png"), plot = hwb_plot,  width = 8, height = 6, dpi = 700) 

@@ -58,7 +58,8 @@ ipm <- nimbleCode({
       aug31.hwb[t,u] <- expit(
         hwb.beta1 + hwb.beta2 * (t == 1) +  hwb.beta3 * (t == 2) +
           hwb.beta4 * (t == 3) +  hwb.beta5 * (t == 4) +
-          hwb.beta6 * (t == 5) + hwb.beta7 * hwb.aug31 + hwb.beta8 * hwb.aug31.2 +
+          hwb.beta6 * (t == 5) + 
+          hwb.beta7 * hwb.aug31 + hwb.beta8 * hwb.aug31.2 +
           hwb.u[u]
       )
     } # end u
@@ -114,7 +115,7 @@ ipm <- nimbleCode({
   # day of year
   ph.beta7 ~ dnorm(0, sd = 1)
   # doy^2
-  ph.beta8 ~ dnorm(0, sd = 1)
+   ph.beta8 ~ dnorm(0, sd = 1)
   
   # Scaling parameter for Gamma distribution
   ph.disp ~ dunif(0, 1)
@@ -431,9 +432,9 @@ ipm <- nimbleCode({
 
     # Initial abundance for juvenile males in each WMU using 2020 hr
     N.lambda.juv.male[u] <- (th.year1.male.juv[u]) / male.h.juv.wmu[1, u]
-    male.N.juv[1, u] ~ dpois(N.lambda.juv.male[u]) 
-   
-    # adjust recruitment for males 
+    male.N.juv[1, u] ~ dpois(N.lambda.juv.male[u])
+
+    # adjust recruitment for males
      male.recruitment[1, u] <- recruitment[1, u] * juv.male.adj[u]
     # male.N.juv[1, u] ~ dpois(male.recruitment[1, u]) # I dont think this can work because we are using the previous years recruitment for males
   } # u
@@ -460,7 +461,7 @@ ipm <- nimbleCode({
       #----------------------------------------------------------#
       # Note: For males, these juveniles are from Nov (t-1) entering in May (t)
       #----------------------------------------------------------#
-      # adjust recruitment for males 
+      # adjust recruitment for males
       male.recruitment[t, u] <- recruitment[t, u] * juv.male.adj[u]
       male.N.juv[t, u] ~ dpois(male.recruitment[t-1, u])
 
@@ -486,9 +487,9 @@ ipm <- nimbleCode({
     female.N.ad[1, u] ~ dpois(N.lambda.ad.female[u])
 
     # Initial abundance for juvenile females in each WMU using 2020 hr
-    N.lambda.juv.female[u] <- (th.year1.female.juv[u]) / female.h.juv.wmu[1, u] 
+    N.lambda.juv.female[u] <- (th.year1.female.juv[u]) / female.h.juv.wmu[1, u]
     female.N.juv[1, u] ~ dpois(N.lambda.juv.female[u])
-    
+
     # Recruitment for the time occasion (2020)
     recruitment[1, u] <- ((female.N.ad[1, u] * aug31.hwb[1, u]) * aug31.ppb[1, u])/2
 

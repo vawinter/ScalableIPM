@@ -24,7 +24,8 @@ library(purrr)
 source("Analysis/00_output-processing_funs.R")
 
 # Load wmu area data
-wmu_areas <- readRDS("Data/wmu_areas_km.rds")
+wmu_areas <- readRDS("Data/wmu_areas_km.rds") %>% 
+  mutate(WMU_ID = paste("WMU", WMU_ID, sep = " "))
 
 ###-----------------------------------------------------#X
 # Organize data frame for IPM run with 4 WMUs for M, F, Ad, Juv
@@ -47,8 +48,8 @@ wmu_areas <- readRDS("Data/wmu_areas_km.rds")
 # "female.N.ad", "female.N.juv"
 
 ###-----------------------------------------------------#X
-load("Data/Output/R_IPM_run.Rdata")
-combined_results <- readRDS("Data/Output/TEST/R_IPM_run23NoAbunNew24kf.rds")
+#load("Data/Output/20250625_Parallel_O_vague_IPM_run.rdsR_IPM_run.Rdata")
+combined_results <- readRDS("Data/Output/20251108_R_IPM_run23.rds")
 
 # `samples` is an MCMC array with dimensions [WMU, Year]
 samples_df <- as.data.frame(combined_results[[1]])
@@ -59,6 +60,8 @@ samples_df <- as.data.frame(combined_results[[1]])
 kf_female_surv_ad_df <- process_category_wmu(samples_df, "avg.ad.s.kf", "Female", "Adult")
 # Juvenile females
 kf_female_surv_juv_df <- process_category_wmu(samples_df, "avg.juv.s.kf", "Female", "Juvenile")
+# Juvenile Males
+kf_male_surv_juv_df <- process_category_wmu(samples_df, "juv.male.adj", "Male", "Juvenile")
 
 # DRM survival for..
 # adult males
@@ -80,15 +83,15 @@ drm_male_harv_juv_df <- process_category(samples_df, "male.h.juv.wmu", "Male", "
 ppb <- process_category(samples_df, "aug31.ppb", "Female", "ppb")
 
 ppb <- ppb %>% mutate(wmu = factor(wmu, levels = c(1, 2, 3, 4), 
-                                     labels = c("2D", "3D", "4D", "5C")))
+                                     labels = c("WMU 2D", "WMU 3D", "WMU 4D", "WMU 5C")))
 # HWB
 hwb <- process_category(samples_df, "aug31.hwb", "Female", "hwb")
 hwb <- hwb %>%  mutate(wmu = factor(wmu, levels = c(1, 2, 3, 4), 
-                                    labels = c("2D", "3D", "4D", "5C")))
+                                    labels = c("WMU 2D", "WMU 3D", "WMU 4D", "WMU 5C")))
 # recruitment
 rec <- process_category(samples_df, "recruitment", "Female", "Adult")
 rec <- rec %>%  mutate(wmu = factor(wmu, levels = c(1, 2, 3, 4), 
-                                    labels = c("2D", "3D", "4D", "5C"))) %>% 
+                                    labels = c("WMU 2D", "WMU 3D", "WMU 4D", "WMU 5C"))) %>% 
   left_join(wmu_areas, by = c("wmu" = "WMU_ID")) %>% 
   mutate(density_value = median_value / area_sq_km)
 
@@ -105,26 +108,25 @@ abundance_df <- bind_rows(
   n_ad_male, n_juv_male
 ) %>%
   mutate(wmu = factor(wmu, levels = c(1, 2, 3, 4), 
-                      labels = c("2D", "3D", "4D", "5C"))) %>%
+                      labels = c("WMU 2D", "WMU 3D", "WMU 4D", "WMU 5C"))) %>%
   left_join(wmu_areas, by = c("wmu" = "WMU_ID")) %>% 
   mutate(demographic_est = "Abundance",
-         density_value = median_value / area_sq_km) #%>% 
-  #filter(year != "5")
+         density_value = median_value / area_sq_km) 
 
 # DRM survival
 drm_survival_df <- bind_rows(
   drm_male_surv_ad_df, drm_male_surv_juv_df
 ) %>% 
-  mutate(wmu = factor(wmu, levels = c(1, 2, 3, 4), 
-                      labels = c("2D", "3D", "4D", "5C")),
+  mutate(wmu = factor(wmu, levels = c(1, 2, 3), 
+                      labels = c("WMU 2D", "WMU 3D", "WMU 4D")),
          demographic_est = "DRM_Survival")
 
 # Known fate survival
 kf_survival_df <- bind_rows(
-  kf_female_surv_ad_df, kf_female_surv_juv_df
+  kf_female_surv_ad_df, kf_female_surv_juv_df, kf_male_surv_juv_df
 ) %>% 
   mutate(wmu = factor(wmu, levels = c(1, 2, 3, 4),
-                       labels = c("2D", "3D", "4D", "5C")),
+                       labels = c("WMU 2D", "WMU 3D", "WMU 4D", "WMU 5C")),
           demographic_est = "KF_Survival")
 
 # Combine kf and drm
@@ -133,6 +135,7 @@ unique_years <- drm_survival_df %>% distinct(year) %>% pull(year)
 
 # Step 2: Expand kf_survival_df to have one entry per year per WMU
 expanded_kf_survival_df <- kf_survival_df %>%
+  filter(sex != "Male") %>% # dont need juvenile males in here for next df
   crossing(year = unique_years)
 
 # Step 3: Bind the data frames together for plotting or analysis
@@ -148,8 +151,8 @@ drm_harvest_df <- bind_rows(
    drm_female_harv_juv_df,
    drm_female_harv_ad_df
 ) %>% 
-  mutate(wmu = factor(wmu, levels = c(1, 2, 3, 4), 
-                      labels = c("2D", "3D", "4D", "5C")),
+  mutate(wmu = factor(wmu, levels = c(1, 2, 3), 
+                      labels = c("WMU 2D", "WMU 3D", "WMU 4D")),
          demographic_est = "DRM_HarvestRate") 
 
 # Save the  summary data frames to RDS files ----
@@ -161,7 +164,7 @@ if (!dir.exists(folder_path)) {
 } else {
   message("Folder already exists: ", folder_path)
 }
-type = "TEST/R_23NoAbunNew24kf"
+type = "TEST/20251108_R_IPM_run23"
 saveRDS(kf_survival_df, paste0("Data/Output/", type, "_kf-survival_summary.rds"))
 saveRDS(combined_survival_df, paste0("Data/Output/", type, "_comb-survival_summary.rds"))
 saveRDS(drm_harvest_df, paste0("Data/Output/", type,  "_harvest_summary.rds"))

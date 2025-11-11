@@ -23,7 +23,7 @@ library(coda)
 set.seed(1235)
 
 ### Nimble model set up ----
-load("Data/Operational_IPM_setup-data/O_IPM_Nimble_data_setup.RData")
+load("Data/Operational_IPM_setup-data/O_IPM_Nimble_data_setup24.RData")
 source("Models/operational_ipm.R")
 ##################################################################X
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
