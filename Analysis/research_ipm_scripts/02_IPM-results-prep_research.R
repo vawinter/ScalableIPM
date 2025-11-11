@@ -90,8 +90,9 @@ hwb <- hwb %>%  mutate(wmu = factor(wmu, levels = c(1, 2, 3, 4),
                                     labels = c("WMU 2D", "WMU 3D", "WMU 4D", "WMU 5C")))
 # recruitment
 rec <- process_category(samples_df, "recruitment", "Female", "Adult")
-rec <- rec %>%  mutate(wmu = factor(wmu, levels = c(1, 2, 3, 4), 
-                                    labels = c("WMU 2D", "WMU 3D", "WMU 4D", "WMU 5C"))) %>% 
+rec2 <- rec %>% 
+  # mutate(wmu = factor(wmu, levels = c(1, 2, 3, 4), 
+  #                                   labels = c("WMU 2D", "WMU 3D", "WMU 4D", "WMU 5C"))) %>% 
   left_join(wmu_areas, by = c("wmu" = "WMU_ID")) %>% 
   mutate(density_value = median_value / area_sq_km)
 
