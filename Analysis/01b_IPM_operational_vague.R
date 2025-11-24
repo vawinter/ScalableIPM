@@ -1,11 +1,8 @@
 ###############################################################################X
-# Parallelized V Integrated Population Model (IPM) Script
+# Parallelized Vague Integrated Population Model (V IPM) Script
 # Modified for parallel processing
 # https://r-nimble.org/nimbleExamples/parallelizing_NIMBLE.html
 ###############################################################################X
-# Note: this script is used for fitting either the O and V IPM. The only change is 
-# the model script that is loaded in. Otherwise, data inputs are the same,
-# the only change are the model priors.
 
 # Clean environment
 rm(list = ls())
@@ -23,8 +20,8 @@ library(coda)
 set.seed(1235)
 
 ### Nimble model set up ----
-load("Data/Operational_IPM_setup-data/V_IPM_Nimble_data_setup.RData")
-source("Models/vague_ipm.R")
+load("Data/Operational_IPM_setup-data/O_IPM_Nimble_data_setup.RData")
+source("Models/operational_ipm_vague_priors.R")
 
 ##################################################################X
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -143,8 +140,8 @@ combined_results <- coda::as.mcmc.list(lapply(results, coda::as.mcmc))
 stopCluster(cl)
 ##------------------##X
 # Save output
-saveRDS(combined_results, paste0("Data/Output/", format(Sys.Date(), "%Y%m%d"), "_V_IPM_run.rds"))
-save.image(file = "Data/Output/V_IPM_run.Rdata")
+saveRDS(combined_results, paste0("Data/Output/", format(Sys.Date(), "%Y%m%d"), "_Parallel_O_vague_IPM_run.rds"))
+save.image(file = "Data/Output/O_vague_IPM_run.Rdata")
 
 #############################################################X
 # Model diagnostics -----

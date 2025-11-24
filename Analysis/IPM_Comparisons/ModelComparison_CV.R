@@ -37,17 +37,17 @@ compute_cv <- function(data, model_name) {
 }
 
 # Load and process models
-mod1 <- readRDS("Data/Output/R_IPM_run.rds")[[1]] %>% as.data.frame()
-mod2 <- readRDS("Data/Output/20250623_Parallel_O_IPM_run.rds")[[1]] %>% as.data.frame()
+mod1 <- readRDS("Data/Output/20251118_R_IPM_run24.rds")[[1]] %>% as.data.frame()
+mod2 <- readRDS("Data/Output/20250815_24_O_IPM_run.rds")[[1]] %>% as.data.frame()
 vague <- readRDS("Data/Output/20250625_Parallel_O_vague_IPM_run.rds")[[1]] %>% as.data.frame()
 
 # Process the posteriors
-research_cv <- compute_cv(mod1, "Research")
+research_cv <- compute_cv(mod1, "Research") 
 operational_cv <- compute_cv(mod2, "Operational")
 vague_cv <- compute_cv(vague, "Vague")
 
 # Combine results
-cv_df_all <- bind_rows(research_cv, operational_cv, vague_cv
+cv_df_all <- bind_rows(research_cv, operational_cv#, vague_cv
                        ) %>% 
   mutate(Base_Parameter = recode(Base_Parameter,
                                  "male.N.juv" = "Juvenile Male Abundance",
@@ -64,7 +64,7 @@ cv_df_all <- bind_rows(research_cv, operational_cv, vague_cv
                                  "male.s.juv.wmu" = "Juvenile Male Survival",
                                  "recruitment" = "Recruitment"
   )) %>% 
-  filter(!Base_Parameter %in% c("aug31.ppb", "aug31.hwb")) %>% 
+  filter(!Base_Parameter %in% c("aug31.ppb", "aug31.hwb", "juv.male.adj")) %>% 
   dplyr::select(Model, Base_Parameter, avgCV) %>% 
   mutate(avgCV = round(avgCV, 3)) %>% 
   distinct()

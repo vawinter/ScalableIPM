@@ -11,47 +11,47 @@
 rm(list = ls())
 gc()
 
-# Source scripts of functions and data preparation
 source("Analysis/00_IPM_funs.R")
 ##-----------------------------------------------------#X
-# location of Turkey database
-access.dir <- "C:/Users/vaw5154/OneDrive - The Pennsylvania State University/PhD/PSUTurkey/PA Turkey Database/"
-# # Read in tables from Access database
-db <- file.path(paste0(access.dir,"TurkeyDB_10_10_2025.accdb"))
-ch <- odbcConnectAccess2007(db) # open channel to database
-dcap <- sqlFetch(ch,"captures", as.is = T)
-dcen <- sqlFetch(ch,"censors", as.is = T)
-dmor <- sqlFetch(ch,"mortalities", as.is = T)
-dtag <- sqlFetch(ch,"transmitter_status", as.is = T)
-close(ch) #close channel to database
+# # location of Turkey database
+# access.dir <- "C:/Users/vaw5154/OneDrive - The Pennsylvania State University/PhD/PSUTurkey/PA Turkey Database/"
+# # # Read in tables from Access database
+# db <- file.path(paste0(access.dir,"TurkeyDB_10_10_2025.accdb"))
+# ch <- odbcConnectAccess2007(db) # open channel to database
+# dcap <- sqlFetch(ch,"captures", as.is = T)
+# dcen <- sqlFetch(ch,"censors", as.is = T)
+# dmor <- sqlFetch(ch,"mortalities", as.is = T)
+# dtag <- sqlFetch(ch,"transmitter_status", as.is = T)
+# close(ch) #close channel to database
 ##-----------------------------------------------------#X
 # DF structuring ----
 ##-----------------------------------------------------#X
-# Grab necessary columns from dfs
-capt <- dcap[,c("bandid","captyr", "captmo", "captday", "studyarea",
-                "lat","long","age","sex","weight","birdcondition", "recapture")]
-cens <- dcen[,c("bandid","cenyr","cenmo","cenday")]
-mor <- dmor[,c("bandid","estmortyr","estmortmo","estmortday","fate_m","subfate1_m")]
+# # Grab necessary columns from dfs
+# capt <- dcap[,c("bandid","captyr", "captmo", "captday", "studyarea",
+#                 "lat","long","age","sex","weight","birdcondition", "recapture")]
+# cens <- dcen[,c("bandid","cenyr","cenmo","cenday")]
+# mor <- dmor[,c("bandid","estmortyr","estmortmo","estmortday","fate_m","subfate1_m")]
+# 
+# # Merge df's
+# d1 <- merge(capt, cens, by="bandid", all.x=TRUE, all.y=FALSE)
+# df <- merge(d1, mor, by="bandid", all.x=TRUE, all.y=FALSE)
 
-# Merge df's
-d1 <- merge(capt, cens, by="bandid", all.x=TRUE, all.y=FALSE)
-df <- merge(d1, mor, by="bandid", all.x=TRUE, all.y=FALSE)  
+# Load in rds version of above
+df <- readRDS("Data/kf_database.rds")
 
 # Filter out rows where capyr is not 2024
-df <- df[df$captyr != 2024, ]
+# df <- df[df$captyr != 2024, ]
 df <- df[df$captyr != 2025, ]
 
 # Filter for rows where sex is "F"
 df <- df[df$sex == "F", ]
 table(df$captyr)
 
-# Define year we are evaluating until
-stop_year <- 2024
 ##-----------------------------------------------------#X
 # Create encounter histories ----
 ##-----------------------------------------------------#X
 # w. function
-status <- encounter_histories(df, filter_sex = "F", stop_year = 2024)
+status <- encounter_histories(df, filter_sex = "F")
 status_matrix <- status # created
 
 ##-----------------------------------------------------#X
@@ -67,12 +67,12 @@ hen <- df %>%
     fate = case_when(
       !is.na(mort) ~ "Dead",
       !is.na(censor) ~ "Censor",
-      year(censor) > as.Date(paste0(stop_year, "-12-31")) ~ "Alive",
-      year(mort) > as.Date(paste0(stop_year, "-12-31")) ~ "Alive",
+      year(censor) > as.Date(paste0(year(Sys.Date()), "-12-31")) ~ "Alive",
+      year(mort) > as.Date(paste0(year(Sys.Date()), "-12-31")) ~ "Alive",
       TRUE ~ "Alive"
     ),
     end = case_when(
-      fate == "Alive" ~ as.Date(paste0(stop_year, "-12-31")),
+      fate == "Alive" ~ as.Date(paste0(year(Sys.Date()), "-12-31")),
       fate == "Censor" ~ censor,
       fate == "Dead" ~ mort
     )
@@ -80,19 +80,19 @@ hen <- df %>%
 
 # Study period
 start_year <- year(min(hen$begin))
-end_year <- stop_year
+end_year <- year(Sys.Date())
 telem.nyears <- end_year - start_year + 1
 
 # Calculate month indices
 hen_mo <- hen %>%
   mutate(
-    start = month(begin) + 12 * (year(begin) - start_year),
-    stop = month(end) + 12 * (year(end) - start_year),
-    year_start = year(begin) - start_year + 1
+    start = month(begin) + 12 * (year(begin) - min(year(begin))),
+    stop = month(end) + 12 * (year(end) - min(year(begin))),
+    year_start = year(begin) - min(year(begin)) + 1
   )
 
 # Initialize arrays
-telem.nind <- nrow(hen_mo)
+telem.nind <- length(unique(hen_mo$bandid))
 is_juvenile_matrix <- array(0, dim = c(telem.nind, telem.nyears, 12))
 
 # Fill arrays:
@@ -107,7 +107,7 @@ for (i in 1:telem.nind) {
         # Mark as juvenile if: captured as juvenile AND currently in capture year AND Jan-May
         is_juvenile_matrix[i, y, m] <- (hen_mo$age[i] == "J" && 
                                           y == hen_mo$year_start[i] && 
-                                          m <= 5) # Juvenieles age to Audlt in June
+                                          m <= 5) # Juveniles age to Adult in June
       }
     } # end m
   } # end y
@@ -122,8 +122,8 @@ hen_timing <- hen_mo %>%
   mutate(
     year_start = year(begin) - start_year + 1,
     year_end = case_when(
-      year(end) < stop_year ~ year(end) - start_year + 1,
-      TRUE ~ stop_year - start_year + 1  # Default case
+      year(end) < year(Sys.Date()) ~ year(end) - start_year + 1,
+      TRUE ~ year(Sys.Date()) - start_year + 1  # Default case
     ),
     first = month(begin),
     last = month(end),
@@ -132,11 +132,14 @@ hen_timing <- hen_mo %>%
   ) %>%
   ungroup()
 
+
 # Define variables for saving
 telem.first <- hen_timing$first
 telem.last <- hen_timing$last
 telem.year.start = hen_timing$year_start
 telem.year.end = hen_timing$year_end
+table(telem.year.end)
+table(telem.year.start)
 
 ##-----------------------------------------------------#X
 # Save data ----
@@ -155,7 +158,7 @@ kf_data <- list(
 )
 
 # Define a directory where you want to save the RDS files
-output_dir <- "Data/Research_IPM_setup-data/kf_data_22-23/"
+output_dir <- "Data/Research_IPM_setup-data/kf_data_22-24/"
 
 # Loop through the list and save each variable as a separate RDS file
 for (var_name in names(kf_data)) {

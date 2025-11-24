@@ -70,16 +70,16 @@ survival <- nimbleCode({
   # Derived Quantities: Survival over month per age and WMU ----
   ###########################################################X
   
-  # Initialize storage for monthly survival rates (Adult and Juvenile)
-  for (m in 1:12) {
-    # Adults, baseline WMU
-    storage[1, 1, m] <- icloglog(telem.beta.int[1] + telem.beta.wmu[1] +  telem.beta.month[m])   
-    # Juveniles, baseline WMU
-    storage[1, 2, m] <- icloglog(telem.beta.int[1] + telem.beta.age[1] + telem.beta.wmu[1] +  telem.beta.month[m]) 
-  }
+  # # Initialize storage for monthly survival rates (Adult and Juvenile)
+  # for (m in 1:12) {
+  #   # Adults, baseline WMU
+  #   storage[1, 1, m] <- icloglog(telem.beta.int[1] + telem.beta.wmu[1] +  telem.beta.month[m])   
+  #   # Juveniles, baseline WMU
+  #   storage[1, 2, m] <- icloglog(telem.beta.int[1] + telem.beta.age[1] + telem.beta.wmu[1] +  telem.beta.month[m]) 
+  # }
   
   # For WMUs beyond the first
-  for (j in 2:(female.telem.wmu)) {
+  for (j in 1:(female.telem.wmu)) {
     for (m in 1:12) {
       # Adults
       storage[j, 1, m] <- icloglog(telem.beta.int[1] + telem.beta.wmu[j] + telem.beta.month[m])

@@ -23,7 +23,7 @@ library(coda)
 source("Analysis/00_IPM_funs.R")
 
 # What year am I fitting [2020- ]
-which <- "23"
+which <- "24"
 # for saving
 type <- paste0("R_IPM_",which,"_Data/R_IPM_Nimble_data_setup_", which)
 #############################################################X
@@ -43,7 +43,7 @@ list2env(myfiles, globalenv())
 rm(myfiles, names, r)
 ##-----------------------------------##x
 # list files [KF 24]
-dir <- "Data/Research_IPM_setup-data/kf_data_22-23/"
+dir <- "Data/Research_IPM_setup-data/kf_data_22-24/"
 K <- list.files(dir, pattern = "\\.rds$", full.names = TRUE)
 names <- sub("\\.rds$", "", basename(K))
 
@@ -54,7 +54,7 @@ list2env(myfiles, globalenv())
 rm(myfiles, names, K)
 ##-----------------------------------##x
 # list files [DRM 24]
-dir <- "Data/Research_IPM_setup-data/2023_DRM/"
+dir <- "Data/Research_IPM_setup-data/2024_DRM/"
 x <- list.files(dir, pattern = "\\.rds$", full.names = TRUE)
 names <- sub("\\.rds$", "", basename(x))
 
@@ -84,12 +84,12 @@ nimble.data <- list(
   HWB = HWB,
   hwb.doy.scale = hwb.doy.scale,
   hwb.doy.2 = hwb.doy.2,
-  # hwb.Year2019 = hwb.Year2019,
+  # [2019 = intercept]
   hwb.Year2020 = hwb.Year2020, 
   hwb.Year2021 = hwb.Year2021,
   hwb.Year2022 = hwb.Year2022,
   hwb.Year2023 = hwb.Year2023,
-#  hwb.Year2024 = hwb.Year2024,
+  hwb.Year2024 = hwb.Year2024,
   hwb.aug31 = hwb.aug31,
   hwb.aug31.2 = hwb.aug31.2,
   
@@ -98,12 +98,12 @@ nimble.data <- list(
   PHratio = PHratio,
   ph.doy.scale = ph.doy.scale,
   ph.doy.2 = ph.doy.2,
-  #ph.Year2019 = ph.Year2019, 
+ # [2019 = intercept]
   ph.Year2020 = ph.Year2020, 
   ph.Year2021 = ph.Year2021,
   ph.Year2022 = ph.Year2022,
   ph.Year2023 = ph.Year2023,
-#  ph.Year2024 = ph.Year2024,
+  ph.Year2024 = ph.Year2024,
   ppb.aug31 = ppb.aug31,
   ppb.aug31.2 = ppb.aug31.2,
   
@@ -190,7 +190,7 @@ inits <- list(
   hwb.beta5 = 0,
   hwb.beta6 = 0,
   hwb.beta7 = 0,
-#  hwb.beta8 = 0,
+  hwb.beta8 = 0,
   hwb.sigma = 1,
   hwb.u = rep(0, length(unique(hwb.wmu))),
   
@@ -203,7 +203,7 @@ inits <- list(
   ph.beta5 = 0,
   ph.beta6 = 0,
   ph.beta7 = 0,
-#  ph.beta8 = 0,
+  ph.beta8 = 0,
   ph.sigma.u = 1,
   
   ###-----------#X
@@ -215,7 +215,6 @@ inits <- list(
   male.rrate.a = rnorm(1, 0.87, 0.039), 
   male.rrate.j = rnorm(1, 0.71, 0.072), 
   male.sigma = runif(1, 0, 10), 
-  
   
   ###-----------#X
   # Males

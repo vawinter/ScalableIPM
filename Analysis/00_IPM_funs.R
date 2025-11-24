@@ -55,8 +55,7 @@ cloglog <- function(x, y){
   1-exp(-exp(t(x)))
 }
 
-
-encounter_histories <- function(df, filter_sex = NA, start_year = NA, stop_year = NA) {
+encounter_histories <- function(df, filter_sex = NA ) {
   library(dplyr)
   library(lubridate)
   
@@ -73,20 +72,20 @@ encounter_histories <- function(df, filter_sex = NA, start_year = NA, stop_year 
   df$fate <- ifelse(is.na(df$mort) & is.na(df$censor), "Alive", ifelse(!is.na(df$censor), "Censor", "Dead"))
   df$end <- case_when(df$fate == "Alive" ~ Sys.Date(), df$fate == "Censor" ~ df$censor, TRUE ~ df$mort)
   
-  # Transition juveniles to adults after year 1
-  # Make juveniles move to adult in June
-  df <- df %>%
-    mutate(age = case_when(
-      age == "J" & !is.na(end) & month(end) %in% 5:12 & year(end) > captyr ~ "A",
-      age == "A" ~ "A",
-      TRUE ~ "J"
-    )) 
-  
+  # # Transition juveniles to adults after year 1
+  # # Make juveniles move to adult in June
+  # df <- df %>%
+  #   mutate(age = case_when(
+  #     age == "J" & !is.na(end) & month(end) %in% 5:12 & year(end) > captyr ~ "A",
+  #     age == "A" ~ "A",
+  #     TRUE ~ "J"
+  #   )) 
+  # 
   # Calculate study period
-  if (is.na(start_year)) {
+ # if (is.na(start_year)) {
     start_year <- year(min(df$begin, na.rm = TRUE))
-  }
-  end_year <- stop_year 
+ # }
+  end_year <- year(Sys.Date())
   
   # Calculate start and stop months for each animal
   df <- df %>%
@@ -125,6 +124,76 @@ encounter_histories <- function(df, filter_sex = NA, start_year = NA, stop_year 
   return(STATUS)
 }
 
+
+# encounter_histories <- function(df, filter_sex = NA, start_year = NA, stop_year = NA) {
+#   library(dplyr)
+#   library(lubridate)
+#   
+#   # Filter by sex if specified
+#   if (!is.na(filter_sex)) {
+#     df <- df %>% filter(sex == filter_sex)
+#   }
+#   
+#   # Ensure required date columns are in the correct format
+#   # Calculate capture, censoring/mortality dates, and fate
+#   df$begin <- as.Date(paste0(df$captyr, "-", df$captmo, "-", df$captday))
+#   df$censor <- as.Date(paste0(df$cenyr, "-", df$cenmo, "-", df$cenday), format = "%Y-%m-%d")
+#   df$mort <- as.Date(paste0(df$estmortyr, "-", df$estmortmo, "-", df$estmortday), format = "%Y-%m-%d")
+#   df$fate <- ifelse(is.na(df$mort) & is.na(df$censor), "Alive", ifelse(!is.na(df$censor), "Censor", "Dead"))
+#   df$end <- case_when(df$fate == "Alive" ~ Sys.Date(), df$fate == "Censor" ~ df$censor, TRUE ~ df$mort)
+#   
+#   # Transition juveniles to adults after year 1
+#   # Make juveniles move to adult in June
+#   df <- df %>%
+#     mutate(age = case_when(
+#       age == "J" & !is.na(end) & month(end) %in% 5:12 & year(end) > captyr ~ "A",
+#       age == "A" ~ "A",
+#       TRUE ~ "J"
+#     )) 
+#   
+#   # Calculate study period
+#   if (is.na(start_year)) {
+#     start_year <- year(min(df$begin, na.rm = TRUE))
+#   }
+#   end_year <- Sys.Date() 
+#   
+#   # Calculate start and stop months for each animal
+#   df <- df %>%
+#     mutate(
+#       start = month(begin) + 12 * (year(begin) - start_year),
+#       stop = month(end) + 12 * (year(end) - start_year)
+#     )
+#   
+#   # Initialize 3D array for statuses [i, y, m]
+#   n_ind <- length(unique(df$bandid))
+#   n_years <- end_year - start_year + 1
+#   STATUS <- array(NA, dim = c(n_ind, n_years, 12))
+#   
+#   # Fill the STATUS array
+#   for (i in 1:n_ind) {
+#     animal_dead <- FALSE
+#     for (y in 1:n_years) { # Year index
+#       for (m in 1:12) { # Month index
+#         month_index <- (y - 1) * 12 + m
+#         if (month_index >= df$start[i] && month_index <= df$stop[i] && !animal_dead) {
+#           STATUS[i, y, m] <- 1 # Alive
+#         }
+#         if (df$fate[i] == "Dead" && month_index == df$stop[i]) {
+#           STATUS[i, y, m] <- 0 # Mark death
+#           animal_dead <- TRUE
+#         }
+#         if (animal_dead && month_index > df$stop[i]) {
+#           STATUS[i, y, m] <- NA # After death
+#         }
+#       }
+#       if (animal_dead) break # Stop if animal is dead
+#     }
+#   }
+#   
+#   # Return the 3D STATUS array
+#   return(STATUS)
+# }
+# 
 
 # Creating poult counts function for recruitment model ----
 # Data organization from access database

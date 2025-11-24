@@ -48,8 +48,7 @@ wmu_areas <- readRDS("Data/wmu_areas_km.rds") %>%
 # "female.N.ad", "female.N.juv"
 
 ###-----------------------------------------------------#X
-#load("Data/Output/20250625_Parallel_O_vague_IPM_run.rdsR_IPM_run.Rdata")
-combined_results <- readRDS("Data/Output/20251108_R_IPM_run23.rds")
+load("Data/Output/20251118_R_IPM_run24.Rdata")
 
 # `samples` is an MCMC array with dimensions [WMU, Year]
 samples_df <- as.data.frame(combined_results[[1]])
@@ -89,10 +88,9 @@ hwb <- process_category(samples_df, "aug31.hwb", "Female", "hwb")
 hwb <- hwb %>%  mutate(wmu = factor(wmu, levels = c(1, 2, 3, 4), 
                                     labels = c("WMU 2D", "WMU 3D", "WMU 4D", "WMU 5C")))
 # recruitment
-rec <- process_category(samples_df, "recruitment", "Female", "Adult")
-rec2 <- rec %>% 
-  # mutate(wmu = factor(wmu, levels = c(1, 2, 3, 4), 
-  #                                   labels = c("WMU 2D", "WMU 3D", "WMU 4D", "WMU 5C"))) %>% 
+rec <- process_category(samples_df, "recruitment", "Female", "Adult") %>% 
+  mutate(wmu = factor(wmu, levels = c(1, 2, 3, 4),
+                                    labels = c("WMU 2D", "WMU 3D", "WMU 4D", "WMU 5C"))) %>%
   left_join(wmu_areas, by = c("wmu" = "WMU_ID")) %>% 
   mutate(density_value = median_value / area_sq_km)
 
@@ -116,7 +114,7 @@ abundance_df <- bind_rows(
 
 # DRM survival
 drm_survival_df <- bind_rows(
-  drm_male_surv_ad_df, drm_male_surv_juv_df
+  drm_male_surv_ad_df, drm_male_surv_juv_df,
 ) %>% 
   mutate(wmu = factor(wmu, levels = c(1, 2, 3), 
                       labels = c("WMU 2D", "WMU 3D", "WMU 4D")),
@@ -145,7 +143,6 @@ combined_survival_df <- bind_rows(
   expanded_kf_survival_df
 )
 
-
 # DRM harvest rate 
 drm_harvest_df <- bind_rows(
   drm_male_harv_ad_df, drm_male_harv_juv_df, 
@@ -157,7 +154,7 @@ drm_harvest_df <- bind_rows(
          demographic_est = "DRM_HarvestRate") 
 
 # Save the  summary data frames to RDS files ----
-folder_path <- "Data/Output/TEST/"
+folder_path <- "Data/Output/"
 # Check if the folder exists, if not, create it
 if (!dir.exists(folder_path)) {
   dir.create(folder_path)
@@ -165,7 +162,7 @@ if (!dir.exists(folder_path)) {
 } else {
   message("Folder already exists: ", folder_path)
 }
-type = "TEST/20251108_R_IPM_run23"
+type = "R24"
 saveRDS(kf_survival_df, paste0("Data/Output/", type, "_kf-survival_summary.rds"))
 saveRDS(combined_survival_df, paste0("Data/Output/", type, "_comb-survival_summary.rds"))
 saveRDS(drm_harvest_df, paste0("Data/Output/", type,  "_harvest_summary.rds"))

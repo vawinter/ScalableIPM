@@ -148,8 +148,8 @@ o_ipm <- nimbleCode({
   # known-fate model 
   for (t in 1:Nyears) {
   for (u in 1:female.n.wmu) {
-    avg.juv.s.kf[t, u] ~ dbeta(shape1 = 2, shape2 = 10)# 5, 5
-    avg.ad.s.kf[t, u] ~ dbeta(shape1 = 2, shape2 = 10) #10, 5
+    avg.juv.s.kf[t, u] ~ dbeta(shape1 = 5, shape2 = 5)
+    avg.ad.s.kf[t, u] ~ dbeta(shape1 = 10, shape2 = 5) 
     }
   }
   
@@ -218,7 +218,7 @@ o_ipm <- nimbleCode({
 
   ## Random effect of wmu
   male.sigma ~ dunif(0,10)
-  for (i in 1:10) {
+  for (i in 1:male.n.wmu) {
     male.wmu.effect[i] ~ dnorm(0, sd = male.sigma)
   }
 

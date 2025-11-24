@@ -1,19 +1,11 @@
 ###############################################################################X
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-############## Research Integrated Population Model (R_IPM): ##################X
-#                     #---# PhD Dissertation: R_IPM #---#
-#    Modeling: Known fate (kf) for hen annual survival, Hen with brood (HWB) and 
-#       Pouts per brood (PPB) recruitment models, Dead-recovery model (DRM) for 
-#       harvest rate and back-transformed annual survival for males, per WMU, 
-#       and age class, a Lincoln-Peterson abundance estimator for annual 
-#       abundance per WMU
-###                                                                         ###X
-###############################################################################X
-# Parallelized Integrated Population Model (IPM) Script
-# Based on original script by Veronica A. Winter
+# Parallelized O Integrated Population Model (IPM) Script
 # Modified for parallel processing
 # https://r-nimble.org/nimbleExamples/parallelizing_NIMBLE.html
 ###############################################################################X
+# Note: this script is used for fitting either the O and V IPM. The only change is 
+# the model script that is loaded in. Otherwise, data inputs are the same,
+# the only change are the model priors.
 
 # Clean environment
 rm(list = ls())
@@ -25,9 +17,14 @@ library(nimble)
 library(parallel)
 library(doParallel)
 library(foreach)
+library(coda)
 
 # Set seed for reproducibility
 set.seed(1235)
+
+### Nimble model set up ----
+load("Data/Operational_IPM_setup-data/O_IPM_Nimble_data_setup24.RData")
+source("Models/operational_ipm_24.R")
 ##################################################################X
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #              ######### THINGS TO NOTE: #########
@@ -35,7 +32,6 @@ set.seed(1235)
 # * Variable names correspond to the associated model. For example:
 # **'hwb' = proportion of hens with a brood
 # **'ppb' = poults-per-brood e.g., poult-to-hen ratio
-# **'kf' = known-fate survival model for females
 # **'drm' = dead-recovery model
 # **'N' = abundance
 # 
@@ -47,16 +43,9 @@ set.seed(1235)
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 ##################################################################X
 
-### Nimble model set up ----
-year <- "24" #or "23"
-nimble.data <- readRDS(paste0("Data/Research_IPM_setup-data/R_IPM_",year,"_Data/R_IPM_Nimble_data_setup_",year,"_nimble.data.rds"))
-inits <- readRDS(paste0("Data/Research_IPM_setup-data/R_IPM_",year,"_Data/R_IPM_Nimble_data_setup_",year,"_inits.rds"))
-consts <- readRDS(paste0("Data/Research_IPM_setup-data/R_IPM_",year,"_Data/R_IPM_Nimble_data_setup_",year,"_consts.rds"))
-
-source("Models/research_ipm.R")
 
 #############################################################X
-# Parallelization setup -----
+# Parallelization setup ----
 #############################################################X
 # Detect number of cores, leave one free for system processes
 num_cores <- max(1, detectCores() - 1)
@@ -66,7 +55,7 @@ cl <- makeCluster(num_cores)
 registerDoParallel(cl)
 
 # Export necessary objects to cluster
-clusterExport(cl, c("nimble.data", "consts", "inits", "ipm"))
+clusterExport(cl, c("nimble.data", "consts", "inits", "o_ipm"))
 
 # Parallel function to run MCMC
 run_parallel_mcmc <- function(seed_offset) {
@@ -77,7 +66,7 @@ run_parallel_mcmc <- function(seed_offset) {
   
   # Create the Nimble model
   model <- nimbleModel(
-    code = ipm,
+    code = o_ipm,
     data = nimble.data,
     constants = consts,
     inits = inits
@@ -92,15 +81,13 @@ run_parallel_mcmc <- function(seed_offset) {
   ipm_run <- nimbleMCMC(
     model = model,
     monitors = c(
-      # Same monitoring parameters as original script
-      "recruitment", 
-      "aug31.ppb", "aug31.hwb",
+      "recruitment", "aug31.ppb", "aug31.hwb",
       "male.h.ad.wmu", "male.s.ad.wmu", 
       "male.h.juv.wmu", "male.s.juv.wmu",
       "female.h.ad.wmu", "female.h.juv.wmu",  
-       "male.N.ad", "male.N.juv",
-       "female.N.ad", "female.N.juv",  
-      "avg.ad.s.kf", "avg.juv.s.kf", "storage", 
+      "male.N.ad", "male.N.juv",
+      "female.N.ad", "female.N.juv",  
+      "avg.ad.s.kf", "avg.juv.s.kf",
       "juv.male.adj"
     ),
     niter = ni, 
@@ -136,7 +123,7 @@ print(paste("Total parallel processing time:", end - start))
 # Combine results -----
 #############################################################X
 combined_results <- coda::as.mcmc.list(lapply(results, coda::as.mcmc))
-##------------------##X
+# ##------------------##X
 # # if parallel need
 # cl <- makeCluster(max(1, detectCores() - 1))
 # registerDoParallel(cl)
@@ -149,15 +136,15 @@ combined_results <- coda::as.mcmc.list(lapply(results, coda::as.mcmc))
 #   as.mcmc(result)
 # }
 
-# Convert to mcmc.list
-combined_results <- as.mcmc.list(combined_results)
+# # Convert to mcmc.list
+# combined_results <- as.mcmc.list(combined_results)
 
 # Stop the cluster
 stopCluster(cl)
 ##------------------##X
 # Save output
-saveRDS(combined_results, paste0("Data/Output/20251124_R_IPM_run", year,".rds"))
-save.image(file = paste0("Data/Output/20251124_R_IPM_run", year,".Rdata"))
+saveRDS(combined_results, paste0("Data/Output/", format(Sys.Date(), "%Y%m%d"), "_24_O_IPM_run.rds"))
+save.image(file = "Data/Output/O_IPM_run24.Rdata")
 
 #############################################################X
 # Model diagnostics -----
@@ -174,8 +161,8 @@ MCMCsummary(combined_results, params = c(
 
 
 # Trace plots (adjust as needed for parallel processing)
-MCMCvis::MCMCtrace(combined_results, pdf = FALSE, 
-                   params = c("juv.male.adj"), iter = 1200000)
+MCMCvis::MCMCtrace(combined_results[[1]], pdf = FALSE, 
+                   params = c("male.N.ad"), iter = 1200000)
 
 # Diagnostic checks
 # Note: These may need modification for parallel results

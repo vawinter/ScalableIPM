@@ -18,8 +18,8 @@ set.seed(1235)
 
 # Source required scripts
 source("Analysis/00_IPM_funs.R")
-source("Analysis/operational_ipm_scripts/0d_data-formating_IPM_24.R")
-source("models/operational_ipm_24.R")
+load("Data/Operational_IPM_setup-data/Operational_IPM_Nimble_data_setup.RData")
+source("models/operational_ipm.R")
 
 ##################################################X
 # Estimate parameters in Nimble ----
@@ -42,7 +42,6 @@ nimble.data <- list(
   hwb.Year2021 = hwb.Year2021,
   hwb.Year2022 = hwb.Year2022,
   hwb.Year2023 = hwb.Year2023,
-  hwb.Year2024 = hwb.Year2024,
   hwb.aug31 = hwb.aug31,
   hwb.aug31.2 = hwb.aug31.2,
   
@@ -56,7 +55,6 @@ nimble.data <- list(
   ph.Year2021 = ph.Year2021,
   ph.Year2022 = ph.Year2022,
   ph.Year2023 = ph.Year2023,
-  ph.Year2024 = ph.Year2024,
   ppb.aug31 = ppb.aug31,
   ppb.aug31.2 = ppb.aug31.2,
   
@@ -66,11 +64,11 @@ nimble.data <- list(
   male.time.param = male.time.param,
   
   ###-----------#X
-  # # Abundance (2020 - 2024)
-  harvest.ad.fall = round(harvest.ad.fall[2:6,]),
-  harvest.juv.fall = round(harvest.juv.fall[2:6,]),
-  harvest.ad.spring  =  round(harvest.ad.spring[2:6,]),
-  harvest.juv.spring = round(harvest.juv.spring[2:6,]),
+  # # Abundance (2020 - 2023)
+  harvest.ad.fall = round(harvest.ad.fall[2:5,]),
+  harvest.juv.fall = round(harvest.juv.fall[2:5,]),
+  harvest.ad.spring  =  round(harvest.ad.spring[2:5,]),
+  harvest.juv.spring = round(harvest.juv.spring[2:5,]),
   # First year harvest (2020)
   th.year1.female.ad = as.integer(round(harvest.ad.fall[2,])),
   th.year1.female.juv = as.integer(round(harvest.juv.fall[2,])),
@@ -99,7 +97,7 @@ consts <- list(
   male.II = male.II, # c(714, 1276) 0, 1=non-reward band
   male.nind = male.nind, # 1990
   male.n.occasions = male.n.occasions, # 5
-  male.n.wmu = male.n.wmu, #9
+  male.n.wmu = male.n.wmu, #10
   male.wmu = as.numeric(as.factor(male.wmu)),
   
   ###-----------#X
@@ -122,7 +120,6 @@ inits <- list(
   hwb.beta5 = 0,
   hwb.beta6 = 0,
   hwb.beta7 = 0,
-  hwb.beta8 = 0,
   hwb.sigma = 1,
   hwb.u = rep(0, length(unique(hwb.wmu))),
   
@@ -135,7 +132,6 @@ inits <- list(
   ph.beta5 = 0,
   ph.beta6 = 0,
   ph.beta7 = 0,
-  ph.beta8 = 0,
   ph.sigma.u = 1,
   ph.u = rep(0, length(unique(ph.wmu))),
   
@@ -169,4 +165,4 @@ inits <- list(
   female.N.ad = array(100000, dim = c(Nyears, 9)),
   female.N.juv = array(100000, dim = c(Nyears, 9))
 )
-save.image(file = "Data/Operational_IPM_setup-data/O_IPM_Nimble_data_setup24.RData")
+save.image(file = "Data/Operational_IPM_setup-data/O_IPM_Nimble_data_setup.RData")

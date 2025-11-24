@@ -1,12 +1,13 @@
 ###############################################################################X
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-############## Research Integrated Population Model (R_IPM): ##################X
-#                     #---# PhD Dissertation: R_IPM #---#
+#################### Integrated Population Model (IPM): ########################
+#                 #---# PhD Dissertation: Simple IPM #---#
 #        Creating a Bayesian IPM to inform turkey management in PA
 ###                                                                         ###X
-#           Formatting Game Take Survey report data from PGC 
+# Formatting hunter harvest data the PGC received from game-take surveys
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #X
 ###############################################################################X
+
 
 rm(list = ls())
 gc()
@@ -14,14 +15,9 @@ gc()
 # libraries
 library(dplyr)
 
-# Load in Harvest data report
 dat <- read.csv("Data/FallSprHarvData.csv")
 head(dat)
 
-##########################X
-#------- Set up ----------X
-##########################X
-# Filter...
 #... by season
 spring <- dat %>% 
   filter(season =="spring")
@@ -34,8 +30,7 @@ wmu_spring_adult <- spring %>%
   group_by(age, year, WMU.Group) %>% 
   reframe(wmu_count = sum(count)) %>% 
   filter(age == "gobbler",
-         WMU.Group %in% c("2D", "3D", "4D"),
-         year %in% c("2019","2020", "2021", "2022", "2023", "2024")) %>% 
+         WMU.Group %in% 1:9) %>% 
   select(year, WMU.Group, wmu_count) %>% 
   as.data.frame()
 
@@ -44,8 +39,7 @@ wmu_spring_juv <- spring %>%
   group_by(age, year, WMU.Group) %>% 
   reframe(wmu_count = sum(count)) %>% 
   filter(age == "jake",    
-         WMU.Group %in% c("2D", "3D", "4D"),
-         year %in% c("2019","2020", "2021", "2022", "2023", "2024")) %>%  
+         WMU.Group %in% 1:9)  %>% 
   select(year, WMU.Group, wmu_count) %>% 
   as.data.frame()
 
@@ -55,8 +49,7 @@ wmu_fall_adult <- fall %>%
   group_by(age, year, WMU.Group) %>% 
   reframe(wmu_count = sum(count))%>% 
   filter(age == "hen",
-         WMU.Group %in% c("2D", "3D", "4D"),
-         year %in% c("2019","2020", "2021", "2022", "2023", "2024")) %>%   
+         WMU.Group %in% 1:9)  %>%  
   select(year, WMU.Group, wmu_count) %>% 
   as.data.frame()
 
@@ -66,27 +59,23 @@ wmu_fall_juv <- fall %>%
   group_by(age, year, WMU.Group) %>% 
   reframe(wmu_count = sum(count))%>% 
   filter(!age == "hen",
-         WMU.Group %in% c("2D", "3D", "4D"),
-         year %in% c("2019","2020", "2021", "2022", "2023", "2024")) %>% 
+         WMU.Group %in% 1:9)  %>% 
   select(year, WMU.Group, wmu_count) %>% 
   as.data.frame()
 
 # Inspect the range of year and WMU Group values
-years <- unique(wmu_spring_juv$year)
+years <- unique(wmu_fall_juv$year)
 wmu_groups <- unique(wmu_fall_juv$WMU.Group)
 
-###############################X
-#------- Formatting  ----------X
-###############################X
 # Initialize the matrices based on the ranges
 harvest.ad.spring <- matrix(NA, nrow = length(years), ncol = length(wmu_groups))
 harvest.juv.spring <- matrix(NA, nrow = length(years), ncol = length(wmu_groups))
 harvest.ad.fall <- matrix(NA, nrow = length(years), ncol = length(wmu_groups))
 harvest.juv.fall <- matrix(NA, nrow = length(years), ncol = length(wmu_groups))
 
-# Create look up tables for the year and WMU.Group indices
-year_index <- match(wmu_spring_juv$year, years)
-wmu_group_index <- match(wmu_spring_juv$WMU.Group, wmu_groups)
+# Create lookup tables for the year and WMU.Group indices
+year_index <- match(wmu_fall_juv$year, years)
+wmu_group_index <- match(wmu_fall_juv$WMU.Group, wmu_groups)
 
 # Fill the matrices with appropriate harvest data
 for (i in 1:nrow(wmu_spring_adult)) {
@@ -117,14 +106,20 @@ for (i in 1:nrow(wmu_fall_juv)) {
   harvest.juv.fall[y_idx, w_idx] <- row$wmu_count
 }
 
-########################X
-#------- Save ----------X
-########################X
-saveRDS(harvest.ad.spring, "Data/Research_IPM_setup-data/2024_DRM/harvest.ad.spring.rds")
-saveRDS(harvest.juv.spring, "Data/Research_IPM_setup-data/2024_DRM/harvest.juv.spring.rds")
-saveRDS(harvest.ad.fall, "Data/Research_IPM_setup-data/2024_DRM/harvest.ad.fall.rds")
-saveRDS(harvest.juv.fall, "Data/Research_IPM_setup-data/2024_DRM/harvest.juv.fall.rds")
-# Done
+
+
+# ... save
+saveRDS(spring, "Data/Operational_IPM_setup-data/harvest_spring.rds")
+saveRDS(fall, "Data/Operational_IPM_setup-data/harvest_fall.rds")
+saveRDS(harvest.ad.spring, "Data/Operational_IPM_setup-data/harvest.ad.spring.rds")
+saveRDS(harvest.juv.spring, "Data/Operational_IPM_setup-data/harvest.juv.spring.rds")
+saveRDS(harvest.ad.fall, "Data/Operational_IPM_setup-data/harvest.ad.fall.rds")
+saveRDS(harvest.juv.fall, "Data/Operational_IPM_setup-data/harvest.juv.fall.rds")
+
+# Done formatting harvest data from Game-take Surveys
+
+
+
 
 
 
