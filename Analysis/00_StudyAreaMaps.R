@@ -141,5 +141,8 @@ ggspatial::annotation_north_arrow(
   geom_sf_text(data = pa_wmu, aes(label = WMU_ID)) +
   xlab(NULL) +
   ylab(NULL)
-ggsave(file.path(paste0("Datavis/study_area.png")), plot = grouped_wmu_map,
+ggsave(file.path(paste0("SubmissionMaterial/MajorRevisions/PubFigs/study_area.png")), plot = grouped_wmu_map,
        device = "png", bg="transparent", dpi = 700, height = 5, width = 8)
+
+ggsave(file.path(paste0("SubmissionMaterial/MajorRevisions/PubFigs/Fig1.pdf")), plot = grouped_wmu_map,
+       device = "pdf", bg="transparent", dpi = 700, height = 5, width = 8)

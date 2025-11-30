@@ -48,7 +48,7 @@ wmu_areas <- readRDS("Data/wmu_km_areas_regions.rds")
 # "female.N.ad", "female.N.juv"
 
 ###-----------------------------------------------------#X
-load("Data/Output/O_IPM_run.Rdata")
+load("Data/Output/V24_IPM_run.Rdata")
 ###-----------------------------------------------------#X
 ## Vague prior on female survival ----X
 # A Note on Vague priors model:
@@ -250,7 +250,7 @@ if (!dir.exists(folder_path)) {
   message("Folder already exists: ", folder_path)
 }
 
-type <- "O_24"
+type <- "V24"
 saveRDS(kf_survival_df, paste0("Data/Output/",  type, "_kf-survival_summary.rds"))
 saveRDS(combined_survival_df, paste0("Data/Output/", type, "_comb-survival_summary.rds"))
 saveRDS(drm_harvest_df, paste0("Data/Output/",  type,  "_harvest_summary.rds"))

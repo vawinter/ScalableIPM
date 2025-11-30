@@ -16,23 +16,24 @@ library(dplyr)
 library(kableExtra)
 
 # Load data 
-kf_survival_df <- readRDS("Data/Output/R__kf-survival_summary.rds")
-drm_harvest_df <- readRDS("Data/Output/R__harvest_summary.rds")
-abundance_df <- readRDS("Data/Output/R__abundance_summary.rds")
-drm_survival_df <- readRDS("Data/Output/R__drm_survival_summary.rds")
-ppb <- readRDS("Data/Output/R__ppb_summary.rds")
-hwb <- readRDS("Data/Output/R__hwb_summary.rds")
-rec <- readRDS("Data/Output/R__rec_summary.rds")
-combined_survival_df <- readRDS("Data/Output/R__comb-survival_summary.rds")
+kf_survival_df <- readRDS("Data/Output/R24_kf-survival_summary.rds")
+drm_harvest_df <- readRDS("Data/Output/R24_harvest_summary.rds")
+abundance_df <- readRDS("Data/Output/R24_abundance_summary.rds")
+drm_survival_df <- readRDS("Data/Output/R24_drm_survival_summary.rds")
+ppb <- readRDS("Data/Output/R24_ppb_summary.rds")
+hwb <- readRDS("Data/Output/R24_hwb_summary.rds")
+rec <- readRDS("Data/Output/R24_rec_summary.rds")
+combined_survival_df <- readRDS("Data/Output/R24_comb-survival_summary.rds")
 
 # Load in WMU areas
-wmu_areas <- readRDS("../../PSUTurkey/turkey_IPM/Data/wmu_areas_km.rds")
+wmu_areas <- readRDS("Data/wmu_areas_km.rds") %>% 
+  mutate(WMU_ID = paste("WMU", WMU_ID, sep = " "))
 
-# Format harvest data ----
-dat <- read.csv("../../PSUTurkey/turkey_IPM/Data/Banding_harv_data/FallSprHarvData_20240919.csv", header=T)
+# Format harvest data
+dat <- read.csv("Data/FallSprHarvData.csv", header=T)
 colnames(dat)
 # If needed....
-#dat$WMU.Group <- dat$ï..WMU.Group
+# dat$WMU.Group <- dat$ï..WMU.Group
 
 #... by season
 spring <- dat %>% 
@@ -48,6 +49,7 @@ wmu_spring_adult <- spring %>%
   reframe(wmu_count = sum(count)) %>% 
   filter(age == "gobbler",
          WMU.Group %in% c("2D", "3D", "4D")) %>% 
+  mutate(WMU.Group = paste("WMU", WMU.Group, sep = " ")) %>% 
   dplyr:: select(year, WMU.Group, wmu_count, age) %>% 
   as.data.frame()
 
@@ -57,6 +59,7 @@ wmu_spring_juv <- spring %>%
   reframe(wmu_count = sum(count)) %>% 
   filter(age == "jake",    
          WMU.Group %in% c("2D", "3D", "4D")) %>% 
+  mutate(WMU.Group = paste("WMU", WMU.Group, sep = " ")) %>% 
   dplyr::select(year, WMU.Group, wmu_count, age) %>% 
   as.data.frame()
 
@@ -67,6 +70,7 @@ wmu_fall_adult <- fall %>%
   reframe(wmu_count = sum(count))%>% 
   filter(age == "hen",
          WMU.Group %in% c("2D", "3D", "4D")) %>%  
+  mutate(WMU.Group = paste("WMU", WMU.Group, sep = " ")) %>% 
   dplyr::select(year, WMU.Group, wmu_count, age) %>% 
   as.data.frame()
 
@@ -77,6 +81,7 @@ wmu_fall_juv <- fall %>%
   reframe(wmu_count = sum(count))%>% 
   filter(!age == "hen",
          WMU.Group %in% c("2D", "3D", "4D")) %>% 
+  mutate(WMU.Group = paste("WMU", WMU.Group, sep = " ")) %>% 
   dplyr::select(year, WMU.Group, wmu_count, age) %>% 
   as.data.frame()
 
@@ -101,15 +106,13 @@ Harvest <- harvest %>%
       TRUE             ~ NA_character_  # Handles any other cases
     )
   ) %>% 
-  mutate(wmu = WMU.Group) %>% 
-  left_join(wmu_areas, by = c("wmu" = "WMU_ID")) %>% 
-  filter(!year %in% c(2019, 2024)) 
+  left_join(wmu_areas, by = c("WMU.Group" = "WMU_ID")) %>% 
+  filter(!year %in% c(2019), age != "ALL") 
 
-
-## Structure harvest df ----
+# Structure abundance df
 # Summarize data for total males, total females, and overall totals
 harvest_df_totals <- Harvest %>%
-  group_by(wmu, year, sex) %>%
+  group_by(WMU.Group, year, sex) %>%
   summarise(
     median_value = sum(wmu_count),
     area_sq_km = first(area_sq_km),  # assuming area is the same across sex/age
@@ -118,7 +121,7 @@ harvest_df_totals <- Harvest %>%
 
 # Add 'Total' category by summing across sex and age_class 
 harvest_df_overall <- harvest_df_totals %>%
-  group_by(wmu, year) %>%
+  group_by(WMU.Group, year) %>%
   summarise(
     median_value = sum(median_value),
     area_sq_km = first(area_sq_km),  # assuming area is the same across sex/age
@@ -127,6 +130,7 @@ harvest_df_overall <- harvest_df_totals %>%
   mutate(sex = "Total") %>%
   bind_rows(harvest_df_totals)  # Append the total rows to the original dataframe
 
+
 # DRM harvest ----
 drm_harvest_df2<- drm_harvest_df %>%
   mutate(Sex_Age_Class = paste(sex, age_class)) %>%
@@ -134,7 +138,8 @@ drm_harvest_df2<- drm_harvest_df %>%
   mutate(Year = case_when(year == 1 ~ "2020",
                           year == 2 ~ "2021",
                           year == 3 ~ "2022",
-                          year == 4 ~ "2023"),
+                          year == 4 ~ "2023",
+                          year == 5 ~ "2024"),
          width = upper_ci - lower_ci) %>%
   dplyr::select(-c(year)) %>%
   relocate(Sex_Age_Class, .before = median_value) %>%
@@ -159,7 +164,7 @@ table_hr_m <- kable(drm_harvest_df2,
 
 table_hr_m
 
-save_kable(table_hr_m, file = "Appendix1Table1.html")
+save_kable(table_hr_m, file = "SubmissionMaterial/MajorRevisions/Appdx/Appendix1Table1.html")
 
 # DRM survival ----
 drm_survival_df2 <- combined_survival_df %>%
@@ -168,7 +173,8 @@ drm_survival_df2 <- combined_survival_df %>%
   mutate(Year = case_when(year == 1 ~ "2020",
                           year == 2 ~ "2021",
                           year == 3 ~ "2022",
-                          year == 4 ~ "2023"),
+                          year == 4 ~ "2023",
+                          year == 5 ~ "2024"),
             # Reorder Sex_Age_Class as a factor for desired grouping
     Sex_Age_Class = factor(Sex_Age_Class, levels = c("Male Adult", "Male Juvenile", "Female Adult", "Female Juvenile")),
                            width = upper_ci - lower_ci) %>%
@@ -185,6 +191,18 @@ drm_survival_df2 <- combined_survival_df %>%
   filter(wmu != "5C") %>% 
   arrange(Sex_Age_Class) 
 
+# Summary statistics by sex-age class and WMU
+survival_summary <- drm_survival_df2 %>% 
+  group_by(Sex_Age_Class) %>% 
+  summarise(
+    mean_survival = mean(Median),
+    median_survival = median(Median),
+    min_survival = min(Median),
+    max_survival = max(Median),
+    n_years = n(),
+    .groups = "drop"
+  )
+
 # Generate the table
 table_sp_a <- kable(drm_survival_df2,
                     booktabs = TRUE,   
@@ -195,14 +213,15 @@ table_sp_a <- kable(drm_survival_df2,
   collapse_rows(columns = c(1, 2), latex_hline = "major", valign = "middle") %>%
   kable_styling(latex_options = c("hold_position", "repeat_header"), full_width = FALSE) 
 
-save_kable(table_sp_a, file = "Appendix1Table2.html")
+save_kable(table_sp_a, file = "SubmissionMaterial/MajorRevisions/Appdx/Appendix1Table2.html")
 # PPB ----
 ppb2 <- ppb %>%
   select(-c(sex, age_class)) %>%
   mutate(Year = case_when(year == 1 ~ "2020",
                           year == 2 ~ "2021",
                           year == 3 ~ "2022",
-                          year == 4 ~ "2023")) %>%
+                          year == 4 ~ "2023",
+                          year == 5 ~ "2024")) %>%
   select(-c(year)) %>%
   relocate(wmu, .before = median_value) %>%
   relocate(Year, .before = median_value) %>% 
@@ -264,7 +283,8 @@ rec2 <- rec %>%
   mutate(Year = case_when(year == 1 ~ "2020",
                           year == 2 ~ "2021",
                           year == 3 ~ "2022",
-                          year == 4 ~ "2023"),
+                          year == 4 ~ "2023",
+                          year == 5 ~ "2024"),
          lower_ci  = lower_ci/area_sq_km,
          upper_ci  = upper_ci/area_sq_km) %>%
   select(-c(year, median_value, mean_value)) %>%
@@ -301,7 +321,8 @@ abundance_df2<- abundance_df %>%
   mutate(Year = case_when(year == 1 ~ "2020",
                           year == 2 ~ "2021",
                           year == 3 ~ "2022",
-                          year == 4 ~ "2023"),
+                          year == 4 ~ "2023",
+                          year == 5 ~ "2024"),
          lower_ci  = lower_ci/area_sq_km,
          upper_ci  = upper_ci/area_sq_km,
          width = upper_ci - lower_ci) %>%
@@ -330,5 +351,5 @@ table_am <- kable(abundance_df2,
   kable_styling(latex_options = c("hold_position", "repeat_header"), full_width = FALSE) 
 
 
-save_kable(table_am, file = "Appendix1Table3.html")
+save_kable(table_am, file = "SubmissionMaterial/MajorRevisions/Appdx/Appendix1Table3.html")
 

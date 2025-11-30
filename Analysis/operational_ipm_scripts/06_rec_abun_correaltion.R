@@ -19,11 +19,11 @@ library(knitr)
 library(ggridges)
 library(reshape2)
 library(patchwork)
-
+library(ggh4x)
 
 # Load data 
-abundance_df <- readRDS("Data/Output/O_abundance_summary.rds")
-rec <- readRDS("Data/Output/O_rec_summary.rds")
+abundance_df <- readRDS("Data/Output/O_24_abundance_summary.rds")
+rec <- readRDS("Data/Output/O_24_rec_summary.rds")
 
 abundance_df$group <- abundance_df$Region
 rec$group <- rec$Region
@@ -68,6 +68,7 @@ recruitment <- rec %>%
     year == 2 ~ "2021",   # If year is 2, assign "2021"
     year == 3 ~ "2022",   # If year is 3, assign "2022"
     year == 4 ~ "2023",   # If year is 4, assign "2023"
+    year == 5 ~ "2024",
     TRUE ~ NA_character_  # Default to NA if year is not 1, 2, 3, or 4
   )) %>% 
   select(-year)
@@ -81,6 +82,7 @@ combined_df <- abundance_df_overall %>%
     year == 2 ~ "2021",   
     year == 3 ~ "2022",  
     year == 4 ~ "2023",
+    year == 5 ~ "2024",
     TRUE ~ NA_character_  # Default to NA if year is not 1, 2, 3, or 4
   )) %>% left_join(recruitment, by = c("Year", "group")) %>% 
   select(-c("year"))
@@ -109,6 +111,7 @@ correlations_groups_r2 <- combined_df %>%
 
 # View the R² values for each group
 print(correlations_groups_r2)
+mean(correlations_groups_r2$r_squared)
 
 # Merge R² values with the plot data
 plot_data_r2 <- plot_data %>%
@@ -137,20 +140,31 @@ corr.plot_r2 <- ggplot(plot_data_r2, aes(x = rec_density, y = abundance_density,
     y = expression('Abundance/km'^2*'')
   ) +
   theme_classic() +
-  facet_wrap(~group) +  # Facet by group
+  facet_wrap2(~group, ncol = 3,
+              strip = strip_themed(
+                background_x = elem_list_rect(fill = c("Region 1" = "#3c1518", 
+                                                       "Region 2" = "#0f5c5d", 
+                                                       "Region 3" = "#69140e",
+                                                       "Region 4" = "#C74442", 
+                                                       "Region 5" = "#5f0f40",
+                                                       "Region 6" = "#043A70", 
+                                                       "Region 7" = "goldenrod",
+                                                       "Region 8" = "#f79d65", 
+                                                       "Region 9" = "#606c38")))
+  ) +
   annotate("segment", x = Inf, xend = Inf, y = -Inf, yend = Inf, color = "black", linetype = "dashed") + # Add dashed line
-  scale_color_manual(values = c("2020" = "orange", "2021" = "#043A50", "2022" = "#C74442", "2023" = "plum4")) +  # Custom colors for each year
+  scale_color_manual(values = c("2020" = "orange", "2021" = "#043A50", "2022" = "#C74442", "2023" = "plum4", "2024" = "green4")) +  # Custom colors for each year
   geom_text(
     data = df_text_r2,  # Use df_text with R² annotations
     aes(x = x, y = y, label = text),
-    color = "black",  # Set text color to black directly here
+    color = "white",  # Set text color to black directly here
     fontface = "italic", hjust = 1, vjust = -1, size = 5, show.legend = FALSE, inherit.aes = FALSE
   ) +
   theme(
     text = element_text(size = 16),           # Increase base text size
     axis.title = element_text(size = 16),     # Increase axis title size
     axis.text = element_text(size = 16),      # Increase axis text (ticks) size
-    strip.text = element_text(size = 16),     # Increase facet label text size
+    strip.text = element_text(size = 16, color = "white"),     # Increase facet label text size
     legend.title = element_text(size = 16, face = "bold"),   # Customize legend title text
     legend.text = element_text(size = 16),    # Customize legend item text
     legend.position = "top",                # Position the legend
@@ -168,5 +182,6 @@ summary(lm(combined_df$rec_density_prev ~ combined_df$abundance_density))$r.squa
 #----X
 
 # Save plot
-ggsave("Dataviz/rec_abun_cor.png", plot = corr.plot_r2, width = 10, height = 8, dpi = 700)
+ggsave("Datavis/rec_abun_cor.png", plot = corr.plot_r2, width = 10, height = 8, dpi = 700)
+ggsave("SubmissionMaterial/MajorRevisions/PubFigs/rec_abun_cor.png", plot = corr.plot_r2, width = 10, height = 8, dpi = 700)
 

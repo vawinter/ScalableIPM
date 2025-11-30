@@ -33,10 +33,10 @@ states <- st_as_sf(maps::map("state", plot = FALSE, fill = TRUE))
 pa <- states %>% filter(ID == "pennsylvania")
 
 # Read in shapefile of WMUs
-wmu_shapefile <- st_read("Data/PGC_BNDWildlifeManagementUnits2024.shp")
+wmu_shapefile <- st_read("../../PSUTurkey/TurkeyProject/Data/PGC_BNDWildlifeManagementUnits2024.shp")
 
 # Read in abundance data
-abundance_df <- readRDS("Data/Output/O_abundance_summary.rds")
+abundance_df <- readRDS("Data/Output/O_24_abundance_summary.rds")
 
 # Create WMU groups based on criteria
 wmu_shapefile <- wmu_shapefile %>%
@@ -88,7 +88,7 @@ abundance_df_overall <- abundance_df %>%
 
 # Filter data for 2020 and 2023 and reshape it
 abundance_df_filtered <- abundance_df_overall %>%
-  filter(year %in% c(2, 4)) %>%
+  filter(year %in% c(2, 5)) %>%
   select(Region, year, median_value)
 
 # Reshape and calculate relative change over time
@@ -101,7 +101,7 @@ abundance_df_wide <- abundance_df_filtered %>%
   ) %>%
   mutate(
     # Calculate relative change: (year_4 - year_1) / year_1
-    abundance_change_relative = (`year_4` - `year_2`) / `year_2`, 
+    abundance_change_relative = (`year_5` - `year_2`) / `year_2`, 
     trend_color = case_when(
       abundance_change_relative > 0 ~ "increase",
       abundance_change_relative < 0 ~ "decrease",
@@ -146,7 +146,13 @@ change_plot <- ggplot(wmu_data_filtered) +
     name = expression('ΔN'),
     guide = guide_colorbar(label = T)
   ) +
-  geom_sf(data = wmu_10, fill = "white", color = "grey") +
+  geom_sf_pattern(data = wmu_10, fill = NA, color = "grey",
+                  alpha = 0.8,
+                  pattern = "stripe",
+                  pattern_fill = "grey",
+                  pattern_colour = NA,
+                  pattern_density = 0.2,
+                  pattern_spacing = 0.03) +
   theme_void() +
   geom_sf_text(data = wmu_data_filtered, aes(label = WMU_Group)) +
   geom_sf_text(data = wmu_10, aes(label = WMU_Group)) +
@@ -159,12 +165,12 @@ change_plot <- ggplot(wmu_data_filtered) +
 
 change_plot
 
-ggsave(file.path(paste0("Dataviz/wmu_group_relative-change-10.png")), plot = change_plot,
+ggsave(file.path(paste0("Datavis/wmu_group_relative-change-1024.png")), plot = change_plot,
        device = "png", bg="transparent", dpi = 700, height = 5, width = 8)
 
-ggsave(file.path(paste0("Datavis/20241229-wmu_group_relative-change-10-21-23.png")), plot = change_plot,
-       device = "png", bg="transparent", dpi = 700, height = 5, width = 8)
-
+# ggsave(file.path(paste0("Datavis/20241229-wmu_group_relative-change-10-21-23.png")), plot = change_plot,
+#        device = "png", bg="transparent", dpi = 700, height = 5, width = 8)
+# 
 
 # For manu
 # Assuming you have a variable in `wmu_data_filtered` like `abundance_change` and you want to plot triangles for significant increases
@@ -180,7 +186,7 @@ wmu_data_filtered$shape <- ifelse(wmu_data_filtered$abundance_change > 0.1, 17, 
 # Summarize abundance data
 abundance_df_totals <- abundance_df %>%
   group_by(Region, year, sex) %>%
-  filter(year == "4") %>% 
+  filter(year == "5") %>% 
   summarise(
     density_value = sum(density_value),
     lower_ci = sum(lower_ci),
@@ -217,7 +223,7 @@ den_plot <- ggplot(wmu_data_filtered2) +
   geom_sf(aes(fill = density_value), color = "white") +  # Fill based on density
   scale_fill_gradientn(
     colors = c(
-      "#9ACD32",
+      "white",
       "#F5F5DC",
       "#E8E8F3",
       "#DCEBF2", # Soft, very light warm blue (original low value)
@@ -232,7 +238,13 @@ den_plot <- ggplot(wmu_data_filtered2) +
     guide = guide_colorbar(label = T),
   values = scales::rescale(c(0, 5)),   # Set the rescaling range to match -0.4 to 0.4
    limits = c(0, 7)) +                       # Set legend limits from -0.4 to 0.4 
-  geom_sf(data = wmu_10, fill = "white", color = "grey") +
+  geom_sf_pattern(data = wmu_10, fill = NA, color = "grey",
+          alpha = 0.8,
+          pattern = "stripe",
+          pattern_fill = "grey",
+          pattern_colour = NA,
+          pattern_density = 0.2,
+          pattern_spacing = 0.03) +
   theme_void() +
   geom_sf_text(data = wmu_10, aes(label = WMU_Group)) +
   geom_sf_text(data = wmu_data_filtered2, aes(label = WMU_Group)) +
@@ -240,18 +252,58 @@ den_plot <- ggplot(wmu_data_filtered2) +
 den_plot
 
 
-ggsave(file.path(paste0("Dataviz/wmu_group_den-10.png")), plot = den_plot,
+ggsave(file.path(paste0("Datavis/wmu_group_den-10.png")), plot = den_plot,
        device = "png", bg="transparent", dpi = 700, height = 6, width = 9)
 
-ggsave(file.path(paste0("Datavis/20241229-wmu_group_den-10.png")), plot = den_plot,
-       device = "png", bg="transparent", dpi = 700, height = 5, width = 8)
+# Stack plots
+# Add to each plot before combining
+change_plot <- change_plot + 
+  labs(tag = "A") +
+  theme(plot.tag = element_text(size = 16, face = "bold", hjust = 0, vjust = 1))
 
+den_plot <- den_plot + 
+  labs(tag = "B") +
+  theme(plot.tag = element_text(size = 16, face = "bold", hjust = 0, vjust = 1))
 
+# Then combine however you're currently combining them
+stack <- change_plot /den_plot
+
+# If stacking vertically (one above the other)
+ggsave(file.path("SubmissionMaterial/MajorRevisions/PubFigs/combined_plot.pdf"), 
+       plot = stack,  # patchwork vertical stack
+       device = "pdf", 
+       bg = "transparent", 
+       dpi = 700, 
+       height = 9,  # Slightly less than 2x to account for shared elements
+       width = 9)
 
 # Line graph for density over time
 # Add 'Total' category by summing across sex and age_class
-abundance_df <- readRDS("Data/Output/Simple_20241105_abundance_summary.rds")
+#abundance_df <- readRDS("Data/Output/Simple_20241105_abundance_summary.rds")
+## Structure abundance df ----
+# Summarize data for total males, total females, and overall totals
+abundance_df_totals <- abundance_df %>%
+  group_by(Region, year, sex) %>%
+  summarise(
+    median_value = sum(median_value),
+    lower_ci = sum(lower_ci),
+    upper_ci = sum(upper_ci),
+    area_sq_km = first(108759.7),  # assuming area is the same across sex/age
+    .groups = "drop"
+  )
 
+# Add 'Total' category by summing across sex and age_class 
+abundance_df_overall <- abundance_df %>%
+  group_by(Region, year) %>%
+  summarise(
+    median_value = sum(median_value),
+    lower_ci = sum(lower_ci),
+    upper_ci = sum(upper_ci),
+    area_sq_km = first(108759.7),  # assuming area is the same across sex/age
+    .groups = "drop"
+  ) %>%
+  mutate(sex = "Total") %>%
+  bind_rows(abundance_df_totals)  # Append the total rows to the original dataframe
 
 # Aggregating to get statewide estimates
 statewide_data <- abundance_df %>%
@@ -280,12 +332,14 @@ statewide_density_table <- statewide_data %>%
       !is.na(Density_Female_Juvenile) & 
       !is.na(Density_Male_Adult) & 
       !is.na(Density_Male_Juvenile)
-  )
+  ) %>% 
+  
+
 
 # View the table
 print(statewide_data)
 
-write.csv(statewide_data, "Manuscript/statewide_density_data.csv", row.names = FALSE)
+write.csv(statewide_data, "Output/statewide_density_data.csv", row.names = FALSE)
 
 combo_colors <- c(
   "Adult Female"    = "#71250F",
@@ -310,8 +364,8 @@ state <- ggplot(data = statewide_data, aes(
   scale_fill_manual(values = combo_colors) +     # Apply custom colors to ribbons
   guides(color = guide_legend(override.aes = list(shape = c(16, 16, 17, 17))),  # Adjust color legend shapes
          shape = guide_none()) +  # Hide separate shape legend
-  scale_x_continuous(breaks = c(1, 2, 3, 4), labels = c("2020", "2021", "2022", "2023")) +  # Change x-axis labels
-  ylim(0, 0.120) +
+  scale_x_continuous(breaks = c(1, 2, 3, 4, 5), labels = c("2020", "2021", "2022", "2023", "2024")) +  # Change x-axis labels
+  #ylim(0, 0.10) +
   labs(
     title = 'Statewide Density (Birds/km²)',
     x = "",
@@ -331,4 +385,4 @@ state <- ggplot(data = statewide_data, aes(
     legend.key = element_rect(fill = "white"),  # Customize legend key appearance
     legend.key.size = unit(1.5, "lines")      # Adjust size of legend keys (shapes)
   )
-ggsave("Manuscript/statewide_O-IPM_comparison.png", plot = state, width = 15, height = 10, dpi = 700)
+ggsave("Datavis/statewide_O-IPM_comparison.png", plot = state, width = 15, height = 10, dpi = 700)

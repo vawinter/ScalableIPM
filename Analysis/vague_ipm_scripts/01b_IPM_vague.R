@@ -144,7 +144,7 @@ stopCluster(cl)
 ##------------------##X
 # Save output
 saveRDS(combined_results, paste0("Data/Output/", format(Sys.Date(), "%Y%m%d"), "_V_IPM_run.rds"))
-save.image(file = "Data/Output/V_IPM_run.Rdata")
+save.image(file = "Data/Output/V24_IPM_run.Rdata")
 
 #############################################################X
 # Model diagnostics -----

@@ -5,10 +5,10 @@ library(tidyr)
 library(stringr)
 
 # Load the data
-load("Data/Operatioanl_IPM_run.Rdata")  # Operational model data
+load("Data/Output/O_IPM_run24.Rdata")  # Operational model data
 
 # Create data frames for the posterior samples
-operational_samples <- as.data.frame(oipm) 
+operational_samples <- as.data.frame(results) 
 
 # Select only abundance columns
 operational_abundance <- operational_samples %>%
@@ -25,11 +25,11 @@ operational_long <- operational_abundance %>%
   mutate(model = "Operational")
 
 # Save
-saveRDS(operational_long, "Data/Output/oipm_abundance.rds")
+saveRDS(operational_long, "Data/Output/oipm24_abundance.rds")
 
 # Vague IPM -----
 # Load the data
-load("Data/Vague_IPM_run.Rdata")  # Vague model data
+load("Data/Output/V_IPM_run24.Rdata")  # Vague model data
 
 # Create data frames for the posterior samples
 vague_samples <- as.data.frame(results)   
@@ -50,6 +50,6 @@ vague_long <- vague_abundance %>%
   mutate(model = "Vague")
 
 # Save
-saveRDS(vague_long, "Data/Output/vipm_abundance.rds")
+saveRDS(vague_long, "Data/Output/vipm24_abundance.rds")
 
 # Done

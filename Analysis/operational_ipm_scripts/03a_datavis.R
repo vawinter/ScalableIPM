@@ -338,7 +338,8 @@ print(combined_plot)
 
 #### Save harvest/drm surv ----
 ggsave("Datavis/O_24_IPM_plot.png", plot = combined_plot,  width = 18, height = 15, dpi = 700)
-
+ggsave("SubmissionMaterial/MajorRevisions/PubFigs/Appx4Fig1.pdf", plot = combined_plot, device = "pdf",  bg="transparent",
+       width = 18, height = 15, dpi = 700)
 # Abundance Plot ----
 #abundance_df_overall <- abundance_df_overall %>% filter(group == 'Group 6')
 abundance_plot <- ggplot(abundance_df_overall, aes(y = median_value / area_sq_km, x = year, shape = sex, color = sex)) +
@@ -368,7 +369,7 @@ abundance_plot <- ggplot(abundance_df_overall, aes(y = median_value / area_sq_km
   )) +
 
   annotate("segment", x = Inf, xend = Inf, y = -Inf, yend = Inf, color = "black", linetype = "dashed") +
-  scale_x_continuous(breaks = c(1, 2, 3, 4, 5), labels = c("2020", "", "", "", "2024")) +
+  scale_x_continuous(breaks = c(1, 2, 3, 4, 5), labels = c("2020", "2021", "2022", "2023", "2024")) +
   labs(x = "Year", y = expression('Abundance/km'^2*''), shape = "", color = "") +  # Modify legend title
   # # Combine the shape and color legends
    guides(color = guide_legend(override.aes = list(shape = c(16, 17, 8))),  # Override shapes in the color legend
@@ -376,21 +377,24 @@ abundance_plot <- ggplot(abundance_df_overall, aes(y = median_value / area_sq_km
   ylim(0, 10) +
   theme_classic() +
   theme(
-    text = element_text(size = 18),           # Increase the base text size
-    axis.title = element_text(size = 18),     # Increase axis title size
-    axis.text.x = element_blank(),      # Increase axis text (ticks) size
-    strip.text = element_text(size = 18, face = "bold", color = "white"),     # Increase facet label text size
-    legend.title = element_text(size = 18, face = "bold"),   # Customize legend title text
-    legend.position = "top",                # Position the legend
+    text = element_text(size = 18),
+    axis.title = element_text(size = 18),
+    axis.text = element_text(size = 18),
+    strip.text = element_text(size = 18, face = "bold", color = "white"), 
+    legend.title = element_text(size = 18, face = "bold", color = "white"),
+    legend.text = element_text(size = 20),
+    legend.position = "top",
     legend.key = element_rect(fill = "white"),  # Customize legend key appearance
-    legend.key.size = unit(1.5, "lines"),      # Adjust size of legend keys (shapes)
-    axis.title.x = element_blank()    # Remove x-axis title
+    legend.key.size = unit(1.5, "lines"),
+    axis.text.x = element_text(angle = 45, hjust = 1)
   )
 
 
 #### Save abundance ----
-ggsave("Datavis/O_24_abun_plot.png", plot = abundance_plot,   width = 17, height = 9, dpi = 700)
-ggsave("Datavis/O_24_abun_plot_updatedprior_ageclass.png", plot = abundance_plot, width = 10, height = 10, dpi = 700)
+ggsave("Datavis/O_24_abun_plot.png", plot = abundance_plot, width = 17, height = 9, dpi = 700)
+ggsave("SubmissionMaterial/MajorRevisions/PubFigs/Fig4.pdf", plot = abundance_plot, device = "pdf",  bg="transparent",
+       width = 17, height = 9, dpi = 700)
+
 ## Harvest density ----
 harvest_den_plot <- ggplot(harvest_df_overall, aes(y = median_value/area_sq_km, x = year, shape = sex, color = sex))  +
   

@@ -37,9 +37,9 @@ compute_cv <- function(data, model_name) {
 }
 
 # Load and process models
-mod1 <- readRDS("Data/Output/20251118_R_IPM_run24.rds")[[1]] %>% as.data.frame()
-mod2 <- readRDS("Data/Output/20250815_24_O_IPM_run.rds")[[1]] %>% as.data.frame()
-vague <- readRDS("Data/Output/20250625_Parallel_O_vague_IPM_run.rds")[[1]] %>% as.data.frame()
+mod1 <- readRDS("Data/Output/R_IPM_run24.rds")[[1]] %>% as.data.frame()
+mod2 <- readRDS("Data/Output/20250815_O_IPM_run24.rds")[[1]] %>% as.data.frame()
+vague <- readRDS("Data/Output/20251126_V_IPM_run24.rds")[[1]] %>% as.data.frame()
 
 # Process the posteriors
 research_cv <- compute_cv(mod1, "Research") 
@@ -47,7 +47,9 @@ operational_cv <- compute_cv(mod2, "Operational")
 vague_cv <- compute_cv(vague, "Vague")
 
 # Combine results
-cv_df_all <- bind_rows(research_cv, operational_cv#, vague_cv
+cv_df_all <- bind_rows(research_cv, 
+                      # operational_cv, 
+                      # vague_cv
                        ) %>% 
   mutate(Base_Parameter = recode(Base_Parameter,
                                  "male.N.juv" = "Juvenile Male Abundance",
@@ -73,7 +75,7 @@ cv_df_all <- bind_rows(research_cv, operational_cv#, vague_cv
 # Print result
 print(cv_df_all)
 
-saveRDS(cv_df_all, "Data/ModelComparison_CV.rds")
+saveRDS(cv_df_all, "Data/ModelComparison_CV24.rds")
 
 library(knitr)
 library(kableExtra)
@@ -85,13 +87,36 @@ table_wmu <- kable(cv_df_all,
   collapse_rows(columns = c(1, 2, 3), latex_hline = "major", valign = "middle") %>%
   kable_styling(latex_options = c("hold_position", "repeat_header"), full_width = FALSE) 
 
-save_kable(table_wmu, file = "Dataviz/Appx8Tb1.html")
+save_kable(table_wmu, file = "Datavis/Appendix/Appx8Tb1.html")
 ##########################X
 # Boxplots ----
 ##########################X
 library(stringr)
 
-box <- cv_df_all %>% 
+cv_df_all2 <- bind_rows(research_cv, 
+                       operational_cv, 
+                       vague_cv
+) %>% 
+  mutate(Base_Parameter = recode(Base_Parameter,
+                                 "male.N.juv" = "Juvenile Male Abundance",
+                                 "female.N.juv" = "Juvenile Female Abundance",
+                                 "male.N.ad" = "Adult Male Abundance",
+                                 "female.N.ad" = "Adult Female Abundance",
+                                 "avg.ad.s.kf" = "Adult Female Survival",
+                                 "avg.juv.s.kf" = "Juvenile Female Survival",
+                                 "female.h.ad.wmu" = "Adult Female Harvest Rate",
+                                 "female.h.juv.wmu" = "Juvenile Female Harvest Rate",
+                                 "male.h.ad.wmu" = "Adult Male Harvest Rate",
+                                 "male.h.juv.wmu" = "Juvenile Male Harvest Rate",
+                                 "male.s.ad.wmu" = "Adult Male Survival",
+                                 "male.s.juv.wmu" = "Juvenile Male Survival",
+                                 "recruitment" = "Recruitment"
+  )) %>% 
+  filter(!Base_Parameter %in% c("aug31.ppb", "aug31.hwb", "juv.male.adj")) %>% 
+  dplyr::select(Model, Base_Parameter, CV) %>% 
+  distinct()
+
+box <- cv_df_all2 %>% 
   filter(Base_Parameter %in% c("Adult Female Abundance",
                                "Adult Female Survival",
                                "Adult Female Harvest Rate",
@@ -119,10 +144,11 @@ box <- cv_df_all %>%
 
 box
 
-ggsave("Dataviz/Model_CV_rec.png", plot = box, width = 10, height = 6, dpi = 700)
-ggsave("../../Manuscripts/ScalableIPM/Dataviz/Model_CV_rec.pdf", plot = box, width = 10, height = 6, dpi = 700)
+ggsave("Datavis/Model_CV24.png", plot = box, width = 10, height = 6, dpi = 700)
+ggsave("SubmissionMaterial/MajorRevisions/PubFigs/Fig5.pdf", plot = box, device = "pdf",  bg="transparent",
+       width = 10, height = 6, dpi = 700)
 #--------------X
-male_box <- cv_df_all %>% 
+male_box <- cv_df_all2 %>% 
   filter(Base_Parameter %in% c("Adult Male Abundance",
                                "Adult Male Survival",
                                "Adult Male Harvest Rate",
@@ -147,7 +173,7 @@ male_box <- cv_df_all %>%
         legend.key = element_rect(fill = "white"),
         legend.key.size = unit(1.5, "lines"))  # Rotate axis labels for clarity
 
-ggsave("Dataviz/appx6_fig1.png", plot = male_box, width = 10, height = 6, dpi = 700)
+ggsave("Datavis/Appendix/appx6_fig1.png", plot = male_box, width = 10, height = 6, dpi = 700)
 
 
 
@@ -155,28 +181,32 @@ ggsave("Dataviz/appx6_fig1.png", plot = male_box, width = 10, height = 6, dpi = 
 ##########################X
 # Density ----
 ##########################X
-cv_df_all %>% 
+cv_df_all2 %>% 
   filter(Base_Parameter %in% c("Adult Female Abundance",
                                "Adult Female Survival",
                                "Adult Female Harvest Rate",
                                "Juvenile Female Abundance",
                                "Juvenile Female Survival",
                                "Juvenile Female Harvest Rate")) %>% 
+  mutate(Model = factor(Model, levels = c("Research", "Operational", "Vague"))) %>%  # Wrap at 10 characters
 ggplot(aes(x = CV, y = Base_Parameter, fill = Model)) +
   geom_density_ridges(alpha = 0.7) +  
   labs(x = "Coefficient of Variation (CV)", y = "Parameter", fill = "") +
+  scale_fill_manual(values = c("Research" = "#b3cde3", "Operational" = "#B34170", "Vague" = "#8856a7")) +
   theme_minimal() +
   theme(legend.position = "top")
 #--------------X
-cv_df_all %>% 
+cv_df_all2 %>% 
   filter(Base_Parameter %in% c("Adult Male Abundance",
                                "Adult Male Survival",
                                "Adult Male Harvest Rate",
                                "Juvenile Male Abundance",
                                "Juvenile Male Survival",
                                "Juvenile Male Harvest Rate")) %>% 
+  mutate(Model = factor(Model, levels = c("Research", "Operational", "Vague"))) %>%  # Wrap at 10 characters
   ggplot(aes(x = CV, y = Base_Parameter, fill = Model)) +
   geom_density_ridges(alpha = 0.7) +  
+  scale_fill_manual(values = c("Research" = "#b3cde3", "Operational" = "#B34170", "Vague" = "#8856a7")) +
   labs(x = "Coefficient of Variation (CV)", y = "Parameter", fill = "") +
   theme_minimal() +
   theme(legend.position = "top")

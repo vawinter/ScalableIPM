@@ -22,7 +22,8 @@ library(reshape2)
 library(patchwork)
 library(ggh4x)
 
-selected_dir <- "Datavis/"
+#selected_dir <- "Datavis/"
+selected_dir <- "SubmissionMaterial/MajorRevisions/PubFigs/"
 
 type = "R24"
 # Load data 
@@ -344,7 +345,8 @@ plot <- survival_plot/harvest_plot1/harvest_plot2
 
 ### Save the harv/den ----
 ggsave(paste0(selected_dir, type, "_IPM_plot.png"), plot = plot, width = 11, height = 13, dpi = 700)
-ggsave("Manuscript/complex_3D-surv.png", plot = plot, width = 10, height = 10, dpi = 700)
+ggsave(paste0(selected_dir, "Fig2.pdf"), plot = plot, device = "pdf",  bg="transparent",
+       width = 11, height = 13, dpi = 700)
 
 
 ## Abundance Plot ----
@@ -395,7 +397,8 @@ abundance_plot <- ggplot(abundance_df_overall, aes(y = median_value/area_sq_km, 
 
 ### Save abudnance ----
 ggsave(paste0(selected_dir,type, "_abun_plot.png"), plot = abundance_plot, width = 15, height = 10, dpi = 700)
-
+ggsave(paste0(selected_dir, "Fig3.pdf"), plot = abundance_plot, device = "pdf",  bg="transparent",
+       width = 15, height = 10, dpi = 700)
 # age class abundance:
 ## Abundance Plot ----
 abundance_plot <- ggplot(abundance_df_overall, aes(y = median_value/area_sq_km, x = year, shape = sex, color = sex)) +

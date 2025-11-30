@@ -156,8 +156,8 @@ combined_results <- as.mcmc.list(combined_results)
 stopCluster(cl)
 ##------------------##X
 # Save output
-saveRDS(combined_results, paste0("Data/Output/20251124_R_IPM_run", year,".rds"))
-save.image(file = paste0("Data/Output/20251124_R_IPM_run", year,".Rdata"))
+saveRDS(combined_results, paste0("Data/Output/20251126_doublecheck_R_IPM_run", year,".rds"))
+save.image(file = paste0("Data/Output/20251126_doublecheck_R_IPM_run", year,".Rdata"))
 
 #############################################################X
 # Model diagnostics -----
@@ -168,7 +168,7 @@ library(MCMCvis)
 # Summarize results
 MCMCsummary(combined_results, params = c(
     "avg.ad.s.kf", "avg.juv.s.kf",
-    "male.h.ad.wmu", "female.h.juv.wmu",
+   # "male.h.ad.wmu", "female.h.juv.wmu",
     "female.N.ad", "female.N.juv"
 ))
 

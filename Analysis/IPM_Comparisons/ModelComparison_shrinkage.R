@@ -19,12 +19,12 @@ wmu_areas2 <- readRDS("Data/wmu_km_areas_regions.rds")
 wmu_areas <- rbind(wmu_areas1, wmu_areas2)
 
 # Load data 
-abundance_df_1 <- readRDS(paste0("Data/Output/R__abundance_summary.rds")) %>% 
+abundance_df_1 <- readRDS(paste0("Data/Output/R24_abundance_summary.rds")) %>% 
   mutate(Model = "Research")
-abundance_df_2 <- readRDS(paste0("Data/Output/O_abundance_summary.rds")) %>% 
+abundance_df_2 <- readRDS(paste0("Data/Output/O_24_abundance_summary.rds")) %>% 
   mutate(wmu = as.character(wmu))%>% 
   mutate(Model = "Operational")
-abundance_df_3 <- readRDS(paste0("Data/Output/V_abundance_summary.rds")) %>% 
+abundance_df_3 <- readRDS(paste0("Data/Output/V24_abundance_summary.rds")) %>% 
   mutate(wmu = as.character(wmu)) %>% 
   select(-c(area_sq_km, density_value)) %>% 
   left_join(wmu_areas2, by = c("Region" = "WMU_ID")) %>% 
@@ -34,7 +34,7 @@ abundance_df_3 <- readRDS(paste0("Data/Output/V_abundance_summary.rds")) %>%
 # Structure abundance df
 # First, filter for only the regions we want (3D and Region 6)
 filtered_abundance_df <- abundance_df_1 %>%
-  filter(wmu %in% c("3D"))
+  filter(wmu %in% c("WMU 3D"))
 
 filtered_abundance_df2 <- abundance_df_2 %>%
   filter(Region %in% c("Region 6")) %>% 
@@ -58,7 +58,7 @@ all_abundance_df <- filtered_abundance_df %>%
 # Calculate annual variation metrics
 annual_variation <- all_abundance_df %>%
   # Group by model, wmu/region, sex, and age_class to calculate means across years
-  group_by(Model, wmu, sex) %>%
+  group_by(Model, wmu, sex, age_class) %>%
   summarize(
     # Calculate the mean abundance across all years
     mean_abundance = mean(median_value),
@@ -78,7 +78,7 @@ print(annual_variation)
 
 # Create a visualization of the percent deviation metric
 ggplot(annual_variation, 
-       aes(x = wmu, y = percent_deviation, fill = Model)) +
+       aes(x = wmu, y = deviation*100, fill = Model)) +
   geom_bar(stat = "identity", position = position_dodge()) +
   facet_grid(sex ~ age_class) +
   labs(title = "Annual Variation in Turkey Abundance Estimates",
@@ -96,10 +96,10 @@ ggsave("Dataviz/annual_variation_by_wmu.png", width = 12, height = 8, dpi = 300)
 
 # Table of results for the paper
 annual_variation_table <- annual_variation %>%
-  select(Model, wmu,  sex, age_class, percent_deviation, cv) %>%
+  select(Model, wmu,  sex, age_class, deviation, cv) %>%
   arrange(Model, wmu, sex, age_class) %>%
   mutate(
-    percent_deviation = round(percent_deviation, 1),
+    percent_deviation = round(deviation, 1),
     cv = round(cv, 3)
   )
 
