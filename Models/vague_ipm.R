@@ -1,4 +1,4 @@
-o_ipm <- nimbleCode({
+v_ipm <- nimbleCode({
   ###########################################################X
   # operational IPM for modeling statewide WMU group dynamics for PA ----
   ###########################################################X
