@@ -1,14 +1,5 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#################### Integrated Population Model (IPM): #######################X
-#                 #---# PhD Dissertation: O-IPM #---#
-#        Creating a Bayesian IPM to inform turkey management in PA
-###                       *** Real data run ***                             ###X
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #X
-###                                                                         ###X
-#                             Data visualization
-###                                                                         ###X
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #X
-###############################################################################X
+# Appendix 5: Comparison of 3D and Region 6
+
 rm(list = ls())
 gc()
 
