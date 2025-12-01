@@ -1,6 +1,6 @@
 v_ipm <- nimbleCode({
   ###########################################################X
-  # operational IPM for modeling statewide WMU group dynamics for PA ----
+  # Vague IPM for modeling statewide WMU group dynamics for PA ----
   ###########################################################X
   # Recruitment: Hen with brood (HWB) model ----
   ###########################################################X
@@ -144,7 +144,7 @@ v_ipm <- nimbleCode({
   ###########################################################X
   # Female survival  ----
   ###########################################################X
-  # Estimate a survival rate for females based off R IPM 
+  # Vague priors to estimate a survival rate for females 
   # known-fate model 
   for (t in 1:Nyears) {
   for (u in 1:female.n.wmu) {
@@ -166,6 +166,7 @@ v_ipm <- nimbleCode({
   # Note: female.n.occasions-1 is done to match the notation for
   # my male DRM. See note in the male DRM likelihood for more info.
   #----------------------------------------------------------# 
+  # Vague priors to estimate a harvest rate for females 
   for (t in 1:(female.n.occasions-1)) {
     for (u in 1:female.n.wmu) {
       # Use a Beta prior on harvest rate
@@ -177,7 +178,7 @@ v_ipm <- nimbleCode({
   ###########################################################X
   # Juvenile Male survival [from Nov. to May] ----
   ###########################################################X
-  # Estimate a survival rate for males based off R IPM 
+  # # Vague priors to estimate a survival rate for juvenile males 
   # known-fate model 
   for (t in 1:Nyears) {
     for (u in 1:male.n.wmu) {
