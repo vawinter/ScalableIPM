@@ -119,7 +119,8 @@ Harvest <- harvest %>%
     )
   ) %>% 
   left_join(wmu_areas, by = c("WMU.Group" = "WMU_ID")) %>% 
-  filter(!year %in% c(2019), age != "ALL") 
+  filter(!year %in% c(2019), age != "ALL") %>% 
+  filter(sex == "Female")
 
 
 # Structure abundance df

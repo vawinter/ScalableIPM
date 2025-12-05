@@ -88,8 +88,8 @@ new_abundance_plot <- ggplot(abundance_df_by_sex,
  # facet_wrap(~sex, ncol = 2) +
   facet_wrap2(~sex, ncol = 2,
               strip = strip_themed(
-                background_x = elem_list_rect(fill = c("Female"  = "#7D453E",
-                                                        "Male"   = "#416E7D")))) +
+                background_x = elem_list_rect(fill = c("Female"  = "white",
+                                                        "Male"   = "white")))) +
 
   # Custom shapes and colors for regions
   scale_shape_manual(values = c("Research" = 17, "Operational" = 16, "Vague" = 15)) + 
