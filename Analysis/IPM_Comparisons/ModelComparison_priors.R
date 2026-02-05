@@ -28,6 +28,7 @@ comp <- ggplot(prior_densities, aes(x = harvest_rate, y = density, color = Prior
   labs(x = "Female Harvest Rate", 
        y = "Density",
        title = "") +
+  scale_color_manual(values = c("Beta(2,50) - Informed" = "#2C5F7C", "Beta(3,30) - Wider" = "#D97E3C")) +
   theme_classic() +
   theme(
     text = element_text(size = 16),           # Increase base text size
