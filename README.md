@@ -20,7 +20,7 @@ The **Operational IPM** leverages informative priors from the Complex IPM poster
 
 ## Research IPM (R-IPM)
 
-The **Research IPM** estimates demographic parameters at the WMU scale for males and females.
+The **R-IPM** estimates demographic parameters at the WMU scale for males and females.
 
 ### Estimations by:
 
@@ -58,7 +58,7 @@ The **Research IPM** estimates demographic parameters at the WMU scale for males
 
 ## Operational IPM (O-IPM)
 
-The **Operational IPM** estimates demographic parameters at the **regional scale** for males and females, using informative priors derived from the *Complex IPM*.
+The **O-IPM** estimates demographic parameters at the **region scale** for males and females, using informative priors derived from the *Complex IPM*.
 
 ### Estimations by:
 

@@ -16,7 +16,7 @@ library("rnaturalearthdata")
 library(geosphere)
 library(ggspatial)
 library(sf)
-library(rgeos) 
+#library(rgeos) 
 library(maps)
 
 # Data read in ----
@@ -77,7 +77,7 @@ grouped_wmu_map <- ggplot(data = pa) +
   geom_sf(data = groups, aes(fill = WMU_Group), color = "black", alpha = 0.6) +
   
   # Telemetry outlines
-  geom_sf(data = four, aes(color = "Telemetry"), fill = NA, linewidth = 2.5) +
+  geom_sf(data = four, aes(color = "Research IPM"), fill = NA, linewidth = 2.5) +
   
   # ---- REGION COLORS ----
 scale_fill_manual(
@@ -104,7 +104,7 @@ scale_fill_manual(
 # We put telemetry second in the guides() call
 scale_color_manual(
   name = "",
-  values = c("Telemetry" = "black"),
+  values = c("Research IPM" = "black"),
   guide = guide_legend(
     override.aes = list(
       fill = NA,
@@ -141,8 +141,8 @@ ggspatial::annotation_north_arrow(
   geom_sf_text(data = pa_wmu, aes(label = WMU_ID)) +
   xlab(NULL) +
   ylab(NULL)
-ggsave(file.path(paste0("SubmissionMaterial/MajorRevisions/PubFigs/study_area.png")), plot = grouped_wmu_map,
+ggsave(file.path(paste0("SubmissionMaterial/Accepted/study_area.png")), plot = grouped_wmu_map,
        device = "png", bg="transparent", dpi = 700, height = 5, width = 8)
 
-ggsave(file.path(paste0("SubmissionMaterial/MajorRevisions/PubFigs/Fig1.pdf")), plot = grouped_wmu_map,
+ggsave(file.path(paste0("SubmissionMaterial/Accepted/Fig1.pdf")), plot = grouped_wmu_map,
        device = "pdf", bg="transparent", dpi = 700, height = 5, width = 8)
