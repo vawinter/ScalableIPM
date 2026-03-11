@@ -19,7 +19,7 @@ library(dplyr)
 library(kableExtra)
 
 # Load data
-abundance_df <- readRDS(paste0("Data/Output/R__abundance_summary.rds"))
+abundance_df <- readRDS(paste0("Data/Output/R24_abundance_summary.rds"))
 
 #############################
 # Format harvest data

@@ -39,13 +39,13 @@ compute_cv <- function(data, model_name) {
 
 # Load and process models
 mod1 <- readRDS("Data/Output/R_IPM_run24.rds")[[1]] %>% as.data.frame()
-mod2<- readRDS("Data/Output/20251124_R_IPM_run24_beta330.rds")[[1]] %>% as.data.frame()
+mod2<- readRDS("Data/Output/MinorRevisions/R_IPM_run24-R2CommentAp7.rds")[[1]] %>% as.data.frame()
 # mod2 <- readRDS("Data/Output/20250815_O_IPM_run24.rds")[[1]] %>% as.data.frame()
 # vague <- readRDS("Data/Output/20251126_V_IPM_run24.rds")[[1]] %>% as.data.frame()
 
 # Process the posteriors
-research_cv <- compute_cv(mod1, "Beta(2, 50)") 
-research_cv2 <- compute_cv(mod1, "Beta(3, 30)") 
+research_cv <- compute_cv(mod1, "Beta(2,50)") 
+research_cv2 <- compute_cv(mod2, "Beta(1,25)") 
 # operational_cv <- compute_cv(mod2, "Operational")
 # vague_cv <- compute_cv(vague, "Vague")
 
@@ -91,7 +91,7 @@ table_wmu <- kable(cv_df_all,
   collapse_rows(columns = c(1, 2, 3), latex_hline = "major", valign = "middle") %>%
   kable_styling(latex_options = c("hold_position", "repeat_header"), full_width = FALSE) 
 
-save_kable(table_wmu, file = "SubmissionMaterial/MajorRevisions/Appdx/Appx7Tb1.html")
+save_kable(table_wmu, file = "SubmissionMaterial/MinorRevisions/Appx7Tb1.html")
 ##########################X
 # Boxplots ----
 ##########################X

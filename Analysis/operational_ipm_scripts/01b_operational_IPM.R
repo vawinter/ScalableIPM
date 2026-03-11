@@ -6,7 +6,7 @@
 # Note: this script is used for fitting either the O and V IPM. The only change is 
 # the model script that is loaded in. Otherwise, data inputs are the same,
 # the only change are the model priors.
-
+setwd("C:/Users/vaw5154/OneDrive - The Pennsylvania State University/PhD/Manuscripts/Chapter1_ScalableIPM/")
 # Clean environment
 rm(list = ls())
 gc()

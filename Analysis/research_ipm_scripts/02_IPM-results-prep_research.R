@@ -48,7 +48,7 @@ wmu_areas <- readRDS("Data/wmu_areas_km.rds") %>%
 # "female.N.ad", "female.N.juv"
 
 ###-----------------------------------------------------#X
-load("Data/Output/20251118_R_IPM_run24.Rdata")
+load("Data/Output/MinorRevisions/R_IPM_run24-R2CommentAp7.RData")
 
 # `samples` is an MCMC array with dimensions [WMU, Year]
 samples_df <- as.data.frame(combined_results[[1]])
@@ -154,7 +154,7 @@ drm_harvest_df <- bind_rows(
          demographic_est = "DRM_HarvestRate") 
 
 # Save the  summary data frames to RDS files ----
-folder_path <- "Data/Output/"
+folder_path <- "Data/Output/MinorRevisions/"
 # Check if the folder exists, if not, create it
 if (!dir.exists(folder_path)) {
   dir.create(folder_path)
@@ -162,7 +162,7 @@ if (!dir.exists(folder_path)) {
 } else {
   message("Folder already exists: ", folder_path)
 }
-type = "R24_check"
+type = "R24-R2CommentAp7"
 saveRDS(kf_survival_df, paste0("Data/Output/", type, "_kf-survival_summary.rds"))
 saveRDS(combined_survival_df, paste0("Data/Output/", type, "_comb-survival_summary.rds"))
 saveRDS(drm_harvest_df, paste0("Data/Output/", type,  "_harvest_summary.rds"))

@@ -53,7 +53,7 @@ nimble.data <- readRDS(paste0("Data/Research_IPM_setup-data/R_IPM_",year,"_Data/
 inits <- readRDS(paste0("Data/Research_IPM_setup-data/R_IPM_",year,"_Data/R_IPM_Nimble_data_setup_",year,"_inits.rds"))
 consts <- readRDS(paste0("Data/Research_IPM_setup-data/R_IPM_",year,"_Data/R_IPM_Nimble_data_setup_",year,"_consts.rds"))
 
-source("Models/research_ipm.R")
+source("Models/research_ipm-R2CommentAp7.R")
 
 #############################################################X
 # Parallelization setup -----
@@ -156,8 +156,8 @@ combined_results <- as.mcmc.list(combined_results)
 stopCluster(cl)
 ##------------------##X
 # Save output
-saveRDS(combined_results, paste0("Data/Output/20251126_doublecheck_R_IPM_run", year,".rds"))
-save.image(file = paste0("Data/Output/20251126_doublecheck_R_IPM_run", year,".Rdata"))
+saveRDS(combined_results, paste0("Data/Output/MinorRevisions/R_IPM_run", year,"-R2CommentAp7.rds"))
+save.image(file = paste0("Data/Output/MinorRevisions/R_IPM_run", year,"-R2CommentAp7.Rdata"))
 
 #############################################################X
 # Model diagnostics -----

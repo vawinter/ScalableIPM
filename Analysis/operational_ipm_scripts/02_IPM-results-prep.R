@@ -48,7 +48,8 @@ wmu_areas <- readRDS("Data/wmu_km_areas_regions.rds")
 # "female.N.ad", "female.N.juv"
 
 ###-----------------------------------------------------#X
-load("Data/Output/O_IPM_run.Rdata")
+# load("Data/Output/O_IPM_run.Rdata")
+load("Data/Output/O_IPM_run24-R2CommentAp7.Rdata")
 ###-----------------------------------------------------#X
 ## Vague prior on female survival ----X
 # A Note on Vague priors model:
@@ -241,7 +242,7 @@ combined_survival_df <- bind_rows(
 
 
 # Save the  summary data frames to RDS files ----
-folder_path <- "Data/Output/"
+folder_path <- "Data/Output/MinorRevisions/"
 # Check if the folder exists, if not, create it
 if (!dir.exists(folder_path)) {
   dir.create(folder_path)
@@ -250,7 +251,7 @@ if (!dir.exists(folder_path)) {
   message("Folder already exists: ", folder_path)
 }
 
-type <- "O_24"
+type <- "O_24-R2CommentAp7"
 saveRDS(kf_survival_df, paste0("Data/Output/",  type, "_kf-survival_summary.rds"))
 saveRDS(combined_survival_df, paste0("Data/Output/", type, "_comb-survival_summary.rds"))
 saveRDS(drm_harvest_df, paste0("Data/Output/",  type,  "_harvest_summary.rds"))
