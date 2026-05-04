@@ -99,3 +99,10 @@ To assess the impact of informative priors, we also fitted the Operational IPM w
 ### Data File:
 
 `vague_IPM.R` – Contains the V-IPM model and the setup data data is `Operational_IPM_run.Rdata`. The set up data does not differ, only priors in the model.
+
+### References
+Paper: https://besjournals.onlinelibrary.wiley.com/doi/10.1111/1365-2664.70383
+
+Data repository: https://datadryad.org/dataset/doi:10.5061/dryad.47d7wm3vg
+
+Code repository: https://zenodo.org/records/19070079
